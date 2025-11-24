@@ -7,7 +7,7 @@ namespace Project_Final_Database_Fundamentals
 {
     internal class DatabaseConnection
     {
-        private const string ConnectionString = "Host=localhost;Database=Football;Username=postgres;Password=bankai";
+        private const string ConnectionString = "Host=192.168.1.173;Port=5432;Database=Football;Username=postgres;Password=bankai";
 
         public static NpgsqlConnection GetConnection()
         {
