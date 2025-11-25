@@ -33,5 +33,11 @@ namespace Project_Final_Database_Fundamentals
         {
             Application.Exit();
         }
+
+        private void btnCompetitionsAndSeasons_Click(object sender, EventArgs e)
+        {
+            uc_CompetitionsAndSeasons moduloCompetitions = new uc_CompetitionsAndSeasons(_currentUserId);
+            CargarControl(moduloCompetitions);
+        }
     }
 }

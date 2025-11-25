@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             tabConfederation = new TabControl();
             Confederations = new TabPage();
             label4 = new Label();
@@ -218,7 +219,7 @@
             tabConfederation.Controls.Add(tabSponsor);
             tabConfederation.Controls.Add(tabSocialMediaPlatform);
             tabConfederation.Dock = DockStyle.Fill;
-            tabConfederation.Font = new Font("Microsoft Sans Serif", 8.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            tabConfederation.Font = new Font("Outfit SemiBold", 9.749999F, FontStyle.Bold, GraphicsUnit.Point, 0);
             tabConfederation.Location = new Point(0, 0);
             tabConfederation.Name = "tabConfederation";
             tabConfederation.SelectedIndex = 0;
@@ -237,10 +238,10 @@
             Confederations.Controls.Add(btnAddConfederation);
             Confederations.Controls.Add(panel1);
             Confederations.Controls.Add(btnUpdateConfederation);
-            Confederations.Location = new Point(4, 24);
+            Confederations.Location = new Point(4, 25);
             Confederations.Name = "Confederations";
             Confederations.Padding = new Padding(3);
-            Confederations.Size = new Size(765, 518);
+            Confederations.Size = new Size(765, 517);
             Confederations.TabIndex = 0;
             Confederations.Text = "Confederations";
             // 
@@ -413,10 +414,10 @@
             tabCountries.Controls.Add(btnAddCountry);
             tabCountries.Controls.Add(panel4);
             tabCountries.Controls.Add(btnUpdateCountry);
-            tabCountries.Location = new Point(4, 24);
+            tabCountries.Location = new Point(4, 25);
             tabCountries.Name = "tabCountries";
             tabCountries.Padding = new Padding(3);
-            tabCountries.Size = new Size(765, 518);
+            tabCountries.Size = new Size(765, 517);
             tabCountries.TabIndex = 1;
             tabCountries.Text = "Country";
             // 
@@ -593,9 +594,10 @@
             tabCity.Controls.Add(btnAddCity);
             tabCity.Controls.Add(panel6);
             tabCity.Controls.Add(btnUpdateCity);
-            tabCity.Location = new Point(4, 24);
+            tabCity.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            tabCity.Location = new Point(4, 25);
             tabCity.Name = "tabCity";
-            tabCity.Size = new Size(765, 518);
+            tabCity.Size = new Size(765, 517);
             tabCity.TabIndex = 2;
             tabCity.Text = "Cities";
             tabCity.UseVisualStyleBackColor = true;
@@ -603,10 +605,10 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Font = new Font("Microsoft Sans Serif", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label9.Font = new Font("Outfit", 20.2499962F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.Location = new Point(326, 17);
             label9.Name = "label9";
-            label9.Size = new Size(98, 31);
+            label9.Size = new Size(94, 34);
             label9.TabIndex = 24;
             label9.Text = "Cities:";
             // 
@@ -616,7 +618,7 @@
             btnClearCity.FlatAppearance.BorderSize = 0;
             btnClearCity.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 43, 46);
             btnClearCity.FlatStyle = FlatStyle.Flat;
-            btnClearCity.Font = new Font("Microsoft Sans Serif", 11.9999981F, FontStyle.Bold);
+            btnClearCity.Font = new Font("Outfit", 12F, FontStyle.Bold);
             btnClearCity.ForeColor = SystemColors.ControlLightLight;
             btnClearCity.Location = new Point(644, 200);
             btnClearCity.Name = "btnClearCity";
@@ -632,7 +634,7 @@
             btnDeleteCity.FlatAppearance.BorderSize = 0;
             btnDeleteCity.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 43, 46);
             btnDeleteCity.FlatStyle = FlatStyle.Flat;
-            btnDeleteCity.Font = new Font("Microsoft Sans Serif", 11.9999981F, FontStyle.Bold);
+            btnDeleteCity.Font = new Font("Outfit", 12F, FontStyle.Bold);
             btnDeleteCity.ForeColor = SystemColors.ControlLightLight;
             btnDeleteCity.Location = new Point(644, 156);
             btnDeleteCity.Name = "btnDeleteCity";
@@ -655,6 +657,14 @@
             // dgvCity
             // 
             dgvCity.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvCity.DefaultCellStyle = dataGridViewCellStyle1;
             dgvCity.Location = new Point(0, 0);
             dgvCity.Name = "dgvCity";
             dgvCity.Size = new Size(729, 247);
@@ -667,7 +677,7 @@
             btnAddCity.FlatAppearance.BorderSize = 0;
             btnAddCity.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 43, 46);
             btnAddCity.FlatStyle = FlatStyle.Flat;
-            btnAddCity.Font = new Font("Microsoft Sans Serif", 11.9999981F, FontStyle.Bold);
+            btnAddCity.Font = new Font("Outfit", 12F, FontStyle.Bold);
             btnAddCity.ForeColor = SystemColors.ControlLightLight;
             btnAddCity.Location = new Point(644, 68);
             btnAddCity.Name = "btnAddCity";
@@ -684,7 +694,7 @@
             panel6.Controls.Add(label11);
             panel6.Controls.Add(txtNameCity);
             panel6.Controls.Add(label12);
-            panel6.Font = new Font("Microsoft Sans Serif", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            panel6.Font = new Font("Outfit", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             panel6.Location = new Point(28, 68);
             panel6.Name = "panel6";
             panel6.Size = new Size(589, 167);
@@ -692,24 +702,26 @@
             // 
             // cmbCountryCity
             // 
+            cmbCountryCity.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCountryCity.FormattingEnabled = true;
             cmbCountryCity.Location = new Point(202, 47);
             cmbCountryCity.Name = "cmbCountryCity";
-            cmbCountryCity.Size = new Size(139, 26);
+            cmbCountryCity.Size = new Size(139, 24);
             cmbCountryCity.TabIndex = 3;
             // 
             // label11
             // 
             label11.AutoSize = true;
+            label11.Font = new Font("Outfit", 11.25F, FontStyle.Bold);
             label11.Location = new Point(202, 24);
             label11.Name = "label11";
-            label11.Size = new Size(72, 18);
+            label11.Size = new Size(70, 19);
             label11.TabIndex = 2;
             label11.Text = "Country:";
             // 
             // txtNameCity
             // 
-            txtNameCity.Font = new Font("Microsoft Sans Serif", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtNameCity.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtNameCity.Location = new Point(16, 47);
             txtNameCity.Name = "txtNameCity";
             txtNameCity.Size = new Size(148, 24);
@@ -718,9 +730,10 @@
             // label12
             // 
             label12.AutoSize = true;
+            label12.Font = new Font("Outfit", 11.25F, FontStyle.Bold);
             label12.Location = new Point(16, 24);
             label12.Name = "label12";
-            label12.Size = new Size(57, 18);
+            label12.Size = new Size(54, 19);
             label12.TabIndex = 0;
             label12.Text = "Name:";
             // 
@@ -730,7 +743,7 @@
             btnUpdateCity.FlatAppearance.BorderSize = 0;
             btnUpdateCity.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 43, 46);
             btnUpdateCity.FlatStyle = FlatStyle.Flat;
-            btnUpdateCity.Font = new Font("Microsoft Sans Serif", 11.9999981F, FontStyle.Bold);
+            btnUpdateCity.Font = new Font("Outfit", 12F, FontStyle.Bold);
             btnUpdateCity.ForeColor = SystemColors.ControlLightLight;
             btnUpdateCity.Location = new Point(644, 112);
             btnUpdateCity.Name = "btnUpdateCity";
@@ -749,9 +762,9 @@
             tabStadium.Controls.Add(btnUpdateStadium);
             tabStadium.Controls.Add(panel7);
             tabStadium.Controls.Add(label10);
-            tabStadium.Location = new Point(4, 24);
+            tabStadium.Location = new Point(4, 25);
             tabStadium.Name = "tabStadium";
-            tabStadium.Size = new Size(765, 518);
+            tabStadium.Size = new Size(765, 517);
             tabStadium.TabIndex = 3;
             tabStadium.Text = "Stadiums";
             tabStadium.UseVisualStyleBackColor = true;
@@ -914,9 +927,9 @@
             tabAwards.Controls.Add(btnAddAward);
             tabAwards.Controls.Add(panel10);
             tabAwards.Controls.Add(btnUpdateAward);
-            tabAwards.Location = new Point(4, 24);
+            tabAwards.Location = new Point(4, 25);
             tabAwards.Name = "tabAwards";
-            tabAwards.Size = new Size(765, 518);
+            tabAwards.Size = new Size(765, 517);
             tabAwards.TabIndex = 4;
             tabAwards.Text = "Awards";
             tabAwards.UseVisualStyleBackColor = true;
@@ -1070,9 +1083,9 @@
             tabEventTypes.Controls.Add(btnAddEventType);
             tabEventTypes.Controls.Add(panel12);
             tabEventTypes.Controls.Add(btnUpdateEventType);
-            tabEventTypes.Location = new Point(4, 24);
+            tabEventTypes.Location = new Point(4, 25);
             tabEventTypes.Name = "tabEventTypes";
-            tabEventTypes.Size = new Size(765, 518);
+            tabEventTypes.Size = new Size(765, 517);
             tabEventTypes.TabIndex = 5;
             tabEventTypes.Text = "Event Types";
             tabEventTypes.UseVisualStyleBackColor = true;
@@ -1207,9 +1220,9 @@
             tabAgencies.Controls.Add(btnAddAgency);
             tabAgencies.Controls.Add(panel14);
             tabAgencies.Controls.Add(btnUpdateAgency);
-            tabAgencies.Location = new Point(4, 24);
+            tabAgencies.Location = new Point(4, 25);
             tabAgencies.Name = "tabAgencies";
-            tabAgencies.Size = new Size(765, 518);
+            tabAgencies.Size = new Size(765, 517);
             tabAgencies.TabIndex = 6;
             tabAgencies.Text = "Agencies";
             tabAgencies.UseVisualStyleBackColor = true;
@@ -1363,9 +1376,9 @@
             tabSponsorshipTypes.Controls.Add(btnAddSponsorshipType);
             tabSponsorshipTypes.Controls.Add(panel15);
             tabSponsorshipTypes.Controls.Add(btnUpdateSponsorshipType);
-            tabSponsorshipTypes.Location = new Point(4, 24);
+            tabSponsorshipTypes.Location = new Point(4, 25);
             tabSponsorshipTypes.Name = "tabSponsorshipTypes";
-            tabSponsorshipTypes.Size = new Size(765, 518);
+            tabSponsorshipTypes.Size = new Size(765, 517);
             tabSponsorshipTypes.TabIndex = 7;
             tabSponsorshipTypes.Text = "Sponsorship Types";
             tabSponsorshipTypes.UseVisualStyleBackColor = true;
@@ -1500,10 +1513,10 @@
             tabSponsor.Controls.Add(btnAddSponsor);
             tabSponsor.Controls.Add(panel17);
             tabSponsor.Controls.Add(btnUpdateSponsor);
-            tabSponsor.Location = new Point(4, 24);
+            tabSponsor.Location = new Point(4, 25);
             tabSponsor.Name = "tabSponsor";
             tabSponsor.Padding = new Padding(3);
-            tabSponsor.Size = new Size(765, 518);
+            tabSponsor.Size = new Size(765, 517);
             tabSponsor.TabIndex = 8;
             tabSponsor.Text = "Sponsors";
             tabSponsor.UseVisualStyleBackColor = true;
@@ -1676,10 +1689,10 @@
             tabSocialMediaPlatform.Controls.Add(btnAddSocialMediaPlatform);
             tabSocialMediaPlatform.Controls.Add(panel19);
             tabSocialMediaPlatform.Controls.Add(btnUpdateSocialMediaPlatform);
-            tabSocialMediaPlatform.Location = new Point(4, 24);
+            tabSocialMediaPlatform.Location = new Point(4, 25);
             tabSocialMediaPlatform.Name = "tabSocialMediaPlatform";
             tabSocialMediaPlatform.Padding = new Padding(3);
-            tabSocialMediaPlatform.Size = new Size(765, 518);
+            tabSocialMediaPlatform.Size = new Size(765, 517);
             tabSocialMediaPlatform.TabIndex = 9;
             tabSocialMediaPlatform.Text = "Social Media Platforms";
             tabSocialMediaPlatform.UseVisualStyleBackColor = true;
