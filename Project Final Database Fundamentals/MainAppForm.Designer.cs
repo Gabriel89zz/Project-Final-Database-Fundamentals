@@ -123,6 +123,7 @@
             btnHumanResources.TabIndex = 11;
             btnHumanResources.Text = "Human Resources";
             btnHumanResources.UseVisualStyleBackColor = true;
+            btnHumanResources.Click += btnHumanResources_Click;
             // 
             // btnSystemAdmnistration
             // 

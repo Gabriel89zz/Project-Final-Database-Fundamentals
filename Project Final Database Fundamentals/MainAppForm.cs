@@ -45,5 +45,11 @@ namespace Project_Final_Database_Fundamentals
             ucTeamsAndClubs moduloTeamsAndClubs = new ucTeamsAndClubs(_currentUserId);
             CargarControl(moduloTeamsAndClubs);
         }
+
+        private void btnHumanResources_Click(object sender, EventArgs e)
+        {
+            uc_HumanResources moduloHumanResources = new uc_HumanResources(_currentUserId);
+            CargarControl(moduloHumanResources);
+        }
     }
 }
