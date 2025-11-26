@@ -39,5 +39,11 @@ namespace Project_Final_Database_Fundamentals
             uc_CompetitionsAndSeasons moduloCompetitions = new uc_CompetitionsAndSeasons(_currentUserId);
             CargarControl(moduloCompetitions);
         }
+
+        private void btnTeamsAndClubs_Click(object sender, EventArgs e)
+        {
+            ucTeamsAndClubs moduloTeamsAndClubs = new ucTeamsAndClubs(_currentUserId);
+            CargarControl(moduloTeamsAndClubs);
+        }
     }
 }

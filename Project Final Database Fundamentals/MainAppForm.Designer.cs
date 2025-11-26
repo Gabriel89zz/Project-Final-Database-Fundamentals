@@ -108,6 +108,7 @@
             btnTeamsAndClubs.TabIndex = 10;
             btnTeamsAndClubs.Text = "Teams And Clubs";
             btnTeamsAndClubs.UseVisualStyleBackColor = true;
+            btnTeamsAndClubs.Click += btnTeamsAndClubs_Click;
             // 
             // btnHumanResources
             // 
