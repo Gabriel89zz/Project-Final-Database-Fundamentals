@@ -1,6 +1,6 @@
 ﻿namespace Project_Final_Database_Fundamentals
 {
-    partial class uc_CompetitionsAndSeasons
+    partial class ucCompetitionsAndSeasons
     {
         /// <summary> 
         /// Variable del diseñador necesaria.

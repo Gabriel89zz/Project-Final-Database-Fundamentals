@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace Project_Final_Database_Fundamentals
 {
-    public partial class uc_HumanResources : UserControl
+    public partial class ucHumanResources : UserControl
     {
         private readonly int _adminUserId;
         private int _selectedPlayerId = 0;
@@ -19,7 +19,7 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedScoutId = 0;
         private int _selectedStaffId = 0;
         private int _selectedStaffRoleId = 0;
-        public uc_HumanResources(int adminUserId)
+        public ucHumanResources(int adminUserId)
         {
             InitializeComponent();
             _adminUserId = adminUserId;
@@ -375,19 +375,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE player SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                player_id = @id;";
+        UPDATE player SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            player_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedPlayerId);
 
                         connection.Open();
@@ -683,19 +683,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE coach SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                coach_id = @id;";
+        UPDATE coach SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            coach_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedCoachId);
 
                         connection.Open();
@@ -974,19 +974,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE referee SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                referee_id = @id;";
+        UPDATE referee SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            referee_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedRefereeId);
 
                         connection.Open();
@@ -1315,19 +1315,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE agent SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                agent_id = @id;";
+        UPDATE agent SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            agent_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedAgentId);
 
                         connection.Open();
@@ -1673,19 +1673,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE scout SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                scout_id = @id;";
+        UPDATE scout SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            scout_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedScoutId);
 
                         connection.Open();
@@ -2015,19 +2015,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE staff_member SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                staff_member_id = @id;";
+        UPDATE staff_member SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            staff_member_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedStaffId);
 
                         connection.Open();
@@ -2250,19 +2250,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE staff_role SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                role_id = @id;";
+        UPDATE staff_role SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            role_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedStaffRoleId);
 
                         connection.Open();

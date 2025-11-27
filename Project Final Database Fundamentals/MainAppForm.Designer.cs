@@ -94,6 +94,7 @@
             btnLineupsAndFormations.TabIndex = 12;
             btnLineupsAndFormations.Text = "Lineups and Formations";
             btnLineupsAndFormations.UseVisualStyleBackColor = true;
+            btnLineupsAndFormations.Click += btnLineupsAndFormations_Click;
             // 
             // btnTeamsAndClubs
             // 

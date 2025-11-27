@@ -9,7 +9,7 @@ using Npgsql;
 
 namespace Project_Final_Database_Fundamentals
 {
-    public partial class uc_CompetitionsAndSeasons : UserControl
+    public partial class ucCompetitionsAndSeasons : UserControl
     {
         private readonly int _adminUserId;
         private int _selectedCompetitionId = 0;
@@ -22,7 +22,7 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedGroupStandingId = 0;
         private int _selectedCompSeasonTeamId = 0;
 
-        public uc_CompetitionsAndSeasons(int adminUserId)
+        public ucCompetitionsAndSeasons(int adminUserId)
         {
             InitializeComponent();
             _adminUserId = adminUserId;
@@ -308,19 +308,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE competition SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                competition_id = @compId;";
+        UPDATE competition SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            competition_id = @compId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@compId", _selectedCompetitionId);
 
                         connection.Open();
@@ -670,19 +670,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE competition_season SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                competition_season_id = @id;";
+        UPDATE competition_season SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            competition_season_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedCompetitionSeasonId);
 
                         connection.Open();
@@ -896,19 +896,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE competition_type SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                type_id = @id;";
+        UPDATE competition_type SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            type_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedCompetitionTypeId);
 
                         connection.Open();
@@ -1157,19 +1157,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE competiton_stage SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                competition_stage_id = @stageId;";
+        UPDATE competition_stage SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            competition_stage_id = @stageId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@stageId", _selectedCompetitionStageId);
 
                         connection.Open();
@@ -1408,19 +1408,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE season SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                season_id = @seasonId;";
+        UPDATE season SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            season_id = @seasonId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@seasonId", _selectedSeasonId);
 
                         connection.Open();
@@ -1686,19 +1686,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE ""group"" SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                group_id = @groupId;";
+        UPDATE ""group"" SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            group_id = @groupId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@groupId", _selectedGroupId);
 
                         connection.Open();
@@ -2025,19 +2025,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE league_standing SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                league_standing_id = @id;";
+        UPDATE league_standing SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            league_standing_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedLeagueStandingId);
 
                         connection.Open();
@@ -2371,19 +2371,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE group_standing SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                group_standing_id = @id;";
+        UPDATE group_standing SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            group_standing_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedGroupStandingId);
 
                         connection.Open();
@@ -2697,19 +2697,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE competition_season_team SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                competition_season_team_id = @id;";
+        UPDATE competition_season_team SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            competition_season_team_id = @id;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@id", _selectedCompSeasonTeamId);
 
                         connection.Open();

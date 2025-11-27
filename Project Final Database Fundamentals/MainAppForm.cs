@@ -25,7 +25,7 @@ namespace Project_Final_Database_Fundamentals
         private void btnSystemAdmnistration_Click(object sender, EventArgs e)
         {
             // Crea una NUEVA instancia del módulo de equipos y lo carga
-            uc_AdministrationAndConfiguration moduloEquipos = new uc_AdministrationAndConfiguration(_currentUserId);
+            ucAdministrationAndConfiguration moduloEquipos = new ucAdministrationAndConfiguration(_currentUserId);
             CargarControl(moduloEquipos);
         }
 
@@ -36,7 +36,7 @@ namespace Project_Final_Database_Fundamentals
 
         private void btnCompetitionsAndSeasons_Click(object sender, EventArgs e)
         {
-            uc_CompetitionsAndSeasons moduloCompetitions = new uc_CompetitionsAndSeasons(_currentUserId);
+            ucCompetitionsAndSeasons moduloCompetitions = new ucCompetitionsAndSeasons(_currentUserId);
             CargarControl(moduloCompetitions);
         }
 
@@ -48,8 +48,14 @@ namespace Project_Final_Database_Fundamentals
 
         private void btnHumanResources_Click(object sender, EventArgs e)
         {
-            uc_HumanResources moduloHumanResources = new uc_HumanResources(_currentUserId);
+            ucHumanResources moduloHumanResources = new ucHumanResources(_currentUserId);
             CargarControl(moduloHumanResources);
+        }
+
+        private void btnLineupsAndFormations_Click(object sender, EventArgs e)
+        {
+            ucLineupsAndFormations moduloLineupsAndFormations = new ucLineupsAndFormations(_currentUserId);
+            CargarControl(moduloLineupsAndFormations);
         }
     }
 }

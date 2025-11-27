@@ -10,7 +10,7 @@ using System.Xml.Linq;
 
 namespace Project_Final_Database_Fundamentals
 {
-    public partial class uc_AdministrationAndConfiguration : UserControl
+    public partial class ucAdministrationAndConfiguration : UserControl
     {
         private readonly int _adminUserId;
         private int _selectedConfederationId = 0;
@@ -25,7 +25,7 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedSocialMediaPlatformId = 0;
 
 
-        public uc_AdministrationAndConfiguration(int adminUserId)
+        public ucAdministrationAndConfiguration(int adminUserId)
         {
             InitializeComponent();
             _adminUserId = adminUserId;
@@ -228,38 +228,34 @@ namespace Project_Final_Database_Fundamentals
 
         private void btnDeleteConfederation_Click(object sender, EventArgs e)
         {
-            // 1. Verificar selección
             if (_selectedConfederationId == 0)
             {
-                MessageBox.Show("Por favor, selecciona un registro para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select a record to delete.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Confirmar acción
             var confirmResult = MessageBox.Show(
-                "¿Estás seguro de que deseas eliminar este registro?\n(Se marcará como inactivo y dejará de ser visible)",
-                "Confirmar Eliminación",
+                "Are you sure you want to delete this record?\n(It will be marked as inactive and will no longer be visible)",
+                "Confirm Delete",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
             if (confirmResult == DialogResult.Yes)
             {
-                // 3. Consulta SQL para "Soft Delete" en PostgreSQL
-                // En lugar de borrar, actualizamos el estado y la fecha de modificación
                 string query = $@"
-            UPDATE ""confederation"" SET 
-                is_active = false,              -- Aquí está la clave
-                updated_at = CURRENT_TIMESTAMP,  -- Registramos cuándo ocurrió
-                updated_by = @updaterId          -- Registramos quién lo hizo
-            WHERE 
-                confederation_id = @confederationId;";
+        UPDATE ""confederation"" SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            confederation_id = @confederationId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@confederationId", _selectedConfederationId);
 
                         connection.Open();
@@ -267,19 +263,15 @@ namespace Project_Final_Database_Fundamentals
 
                         if (result > 0)
                         {
-                            MessageBox.Show("Registro eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                            // 4. Importante: Recargar la lista para que el item "desaparezca" del grid
+                            MessageBox.Show("Record deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             LoadConfederations();
-
-                            // Limpiar los campos de texto
                             btnClearConfederation_Click(sender, e);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error al eliminar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Error deleting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -482,19 +474,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = $@"
-                UPDATE ""country"" SET 
-                    is_active = false,
-                    updated_at = CURRENT_TIMESTAMP,
-                    updated_by = @updaterId
-                WHERE 
-                    country_id = @countryId;";
+        UPDATE ""country"" SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            country_id = @countryId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@countryId", _selectedCountryId);
 
                         connection.Open();
@@ -777,19 +769,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE city SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                city_id = @cityId;";
+        UPDATE city SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            city_id = @cityId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@cityId", _selectedCityId);
 
                         connection.Open();
@@ -1061,7 +1053,7 @@ namespace Project_Final_Database_Fundamentals
             }
         }
 
-        private void btnDeleteStadium_Click(object sender, EventArgs e)
+        private async void btnDeleteStadium_Click(object sender, EventArgs e)
         {
             if (_selectedStadiumId == 0)
             {
@@ -1074,19 +1066,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE stadium SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                stadium_id = @stadiumId;";
+        UPDATE stadium SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            stadium_id = @stadiumId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@stadiumId", _selectedStadiumId);
 
                         connection.Open();
@@ -1095,7 +1087,7 @@ namespace Project_Final_Database_Fundamentals
                         if (result > 0)
                         {
                             MessageBox.Show("Stadium deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            LoadStadiumsAsync();
+                            await LoadStadiumsAsync();
                             btnClearStadium_Click(sender, e);
                         }
                     }
@@ -1290,19 +1282,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE award SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                award_id = @awardId;";
+        UPDATE award SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            award_id = @awardId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@awardId", _selectedAwardId);
 
                         connection.Open();
@@ -1311,7 +1303,7 @@ namespace Project_Final_Database_Fundamentals
                         if (result > 0)
                         {
                             MessageBox.Show("Award deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            await LoadAwardsAsync(); // Refresh Grid Asynchronously
+                            await LoadAwardsAsync();
                             btnClearAward_Click(sender, e);
                         }
                     }
@@ -1502,19 +1494,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE event_type SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                event_type_id = @eventTypeId;";
+        UPDATE event_type SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            event_type_id = @eventTypeId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@eventTypeId", _selectedEventTypeId);
 
                         connection.Open();
@@ -1766,19 +1758,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE agency SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                agency_id = @agencyId;";
+        UPDATE agency SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            agency_id = @agencyId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@agencyId", _selectedAgencyId);
 
                         connection.Open();
@@ -1987,19 +1979,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE sponsorship_type SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                sponsorship_type_id = @sponsorshipTypeId;";
+        UPDATE sponsorship_type SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            sponsorship_type_id = @sponsorshipTypeId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@sponsorshipTypeId", _selectedSponsorshipTypeId);
 
                         connection.Open();
@@ -2256,19 +2248,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE sponsor SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                sponsor_id = @sponsorId;";
+        UPDATE sponsor SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            sponsor_id = @sponsorId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@sponsorId", _selectedSponsorId);
 
                         connection.Open();
@@ -2479,19 +2471,19 @@ namespace Project_Final_Database_Fundamentals
             if (confirm == DialogResult.Yes)
             {
                 string query = @"
-            UPDATE social_media_platform SET 
-                is_active = false,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = @updaterId
-            WHERE 
-                social_media_platform_id = @platformId;";
+        UPDATE social_media_platform SET 
+            is_active = false,
+            deleted_at = CURRENT_TIMESTAMP,
+            deleted_by = @deleterId
+        WHERE 
+            social_media_platform_id = @platformId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
                         command.Parameters.AddWithValue("@platformId", _selectedSocialMediaPlatformId);
 
                         connection.Open();

@@ -1,6 +1,6 @@
 ﻿namespace Project_Final_Database_Fundamentals
 {
-    partial class uc_AdministrationAndConfiguration
+    partial class ucAdministrationAndConfiguration
     {
         /// <summary> 
         /// Variable del diseñador necesaria.
