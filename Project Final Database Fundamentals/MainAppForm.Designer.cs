@@ -80,6 +80,7 @@
             btnPlayerPerfomance.TabIndex = 14;
             btnPlayerPerfomance.Text = "Player Performance And Health";
             btnPlayerPerfomance.UseVisualStyleBackColor = true;
+            btnPlayerPerfomance.Click += btnPlayerPerfomance_Click;
             // 
             // btnLineupsAndFormations
             // 

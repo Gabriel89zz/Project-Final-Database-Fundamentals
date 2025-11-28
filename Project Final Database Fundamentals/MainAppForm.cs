@@ -63,5 +63,11 @@ namespace Project_Final_Database_Fundamentals
             ucGameMatchesAndEvents moduloGameMatchesAndEvents = new ucGameMatchesAndEvents(_currentUserId);
             CargarControl(moduloGameMatchesAndEvents);
         }
+
+        private void btnPlayerPerfomance_Click(object sender, EventArgs e)
+        {
+            ucPlayerPerfomanceAndHealth moduloPlayerPerfomanceAndHealth = new ucPlayerPerfomanceAndHealth(_currentUserId);
+            CargarControl(moduloPlayerPerfomanceAndHealth);
+        }
     }
 }
