@@ -396,6 +396,7 @@
             // 
             // nudPlayerWeight
             // 
+            nudPlayerWeight.DecimalPlaces = 2;
             nudPlayerWeight.Location = new Point(338, 118);
             nudPlayerWeight.Name = "nudPlayerWeight";
             nudPlayerWeight.Size = new Size(59, 26);
@@ -403,6 +404,7 @@
             // 
             // nudPlayerHeigth
             // 
+            nudPlayerHeigth.DecimalPlaces = 2;
             nudPlayerHeigth.Location = new Point(263, 119);
             nudPlayerHeigth.Name = "nudPlayerHeigth";
             nudPlayerHeigth.Size = new Size(59, 26);
@@ -1834,12 +1836,12 @@
             btnUpdateStaffRole.UseVisualStyleBackColor = false;
             btnUpdateStaffRole.Click += btnUpdateStaffRole_Click;
             // 
-            // uc_HumanResources
+            // ucHumanResources
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(tabControlHumanResources);
-            Name = "uc_HumanResources";
+            Name = "ucHumanResources";
             Size = new Size(773, 546);
             tabControlHumanResources.ResumeLayout(false);
             tabPagePlayer.ResumeLayout(false);

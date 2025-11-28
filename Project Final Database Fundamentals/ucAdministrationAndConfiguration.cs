@@ -884,34 +884,40 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            stadium_id, 
-            stadium.name, 
-            stadium.capacity,
-            stadium.city_id, 
-            city.name AS city_name 
-        FROM stadium
-        INNER JOIN city ON stadium.city_id = city.city_id
-        WHERE stadium.is_active = true
-        ORDER BY stadium_id DESC";
+    SELECT 
+        stadium_id, 
+        stadium.name, 
+        stadium.capacity,
+        stadium.city_id, 
+        city.name AS city_name 
+    FROM stadium
+    INNER JOIN city ON stadium.city_id = city.city_id
+    WHERE stadium.is_active = true
+    ORDER BY stadium_id DESC";
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
-                    await connection.OpenAsync(); // Espera conexión sin congelar
+                    await connection.OpenAsync();
 
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
-                    using (NpgsqlDataReader reader = await command.ExecuteReaderAsync()) // Espera datos sin congelar
+                    using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         DataTable dt = new DataTable();
-                        dt.Load(reader); // Vuelca los datos en memoria
+                        dt.Load(reader);
 
                         dgvStadiums.DataSource = dt;
 
-                        // Ocultar columnas internas
-                        if (dgvStadiums.Columns["stadium_id"] != null) dgvStadiums.Columns["stadium_id"].Visible = false;
-                        if (dgvStadiums.Columns["city_id"] != null) dgvStadiums.Columns["city_id"].Visible = false;
+                        if (dgvStadiums.Columns["stadium_id"] != null)
+                        {
+                            dgvStadiums.Columns["stadium_id"].Visible = true; 
+                            dgvStadiums.Columns["stadium_id"].HeaderText = "ID Estadio";
+                            dgvStadiums.Columns["stadium_id"].DisplayIndex = 0; 
+                            dgvStadiums.Columns["stadium_id"].Width = 60; 
+                        }
+                        if (dgvStadiums.Columns["city_id"] != null)
+                            dgvStadiums.Columns["city_id"].Visible = false;
                     }
                 }
             }

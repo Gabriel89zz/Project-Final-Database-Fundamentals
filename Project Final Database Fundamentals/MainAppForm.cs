@@ -57,5 +57,11 @@ namespace Project_Final_Database_Fundamentals
             ucLineupsAndFormations moduloLineupsAndFormations = new ucLineupsAndFormations(_currentUserId);
             CargarControl(moduloLineupsAndFormations);
         }
+
+        private void btnGameMatchesAndEvents_Click(object sender, EventArgs e)
+        {
+            ucGameMatchesAndEvents moduloGameMatchesAndEvents = new ucGameMatchesAndEvents(_currentUserId);
+            CargarControl(moduloGameMatchesAndEvents);
+        }
     }
 }

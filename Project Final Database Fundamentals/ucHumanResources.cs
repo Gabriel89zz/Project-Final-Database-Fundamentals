@@ -513,18 +513,18 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            c.coach_id, 
-            c.first_name, 
-            c.last_name, 
-            c.license_level,
-            c.date_of_birth,
-            c.country_id,
-            co.name AS country_name
-        FROM coach c
-        INNER JOIN ""country"" co ON c.country_id = co.country_id
-        WHERE c.is_active = true
-        ORDER BY c.last_name, c.first_name";
+    SELECT 
+        c.coach_id, 
+        c.first_name, 
+        c.last_name, 
+        c.license_level,
+        c.date_of_birth,
+        c.country_id,
+        co.name AS country_name
+    FROM coach c
+    INNER JOIN ""country"" co ON c.country_id = co.country_id
+    WHERE c.is_active = true
+    ORDER BY coach_id";
 
             try
             {
@@ -539,9 +539,23 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCoach.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvCoach.Columns["coach_id"] != null) dgvCoach.Columns["coach_id"].Visible = false;
-                        if (dgvCoach.Columns["country_id"] != null) dgvCoach.Columns["country_id"].Visible = false;
+                        // --- MODIFICACIÓN AQUÍ ---
+
+                        // Configurar coach_id para que sea VISIBLE
+                        if (dgvCoach.Columns["coach_id"] != null)
+                        {
+                            dgvCoach.Columns["coach_id"].Visible = true; // Ahora es true
+                            dgvCoach.Columns["coach_id"].HeaderText = "ID Coach"; // Título bonito
+                            dgvCoach.Columns["coach_id"].DisplayIndex = 0; // Opcional: Que salga primero
+                            dgvCoach.Columns["coach_id"].Width = 50; // Opcional: Que no ocupe mucho espacio
+                        }
+
+                        // Configurar country_id para que sea VISIBLE
+                        if (dgvCoach.Columns["country_id"] != null)
+                        {
+                            dgvCoach.Columns["country_id"].Visible = true; // Ahora es true
+                            dgvCoach.Columns["country_id"].HeaderText = "ID País";
+                        }
 
                         // Format Date Column
                         if (dgvCoach.Columns["date_of_birth"] != null)
@@ -831,7 +845,7 @@ namespace Project_Final_Database_Fundamentals
                         dgvReferee.DataSource = dt;
 
                         // Hide internal IDs
-                        if (dgvReferee.Columns["referee_id"] != null) dgvReferee.Columns["referee_id"].Visible = false;
+                        if (dgvReferee.Columns["referee_id"] != null) dgvReferee.Columns["referee_id"].Visible = true;
                         if (dgvReferee.Columns["country_id"] != null) dgvReferee.Columns["country_id"].Visible = false;
 
                         // Format Date Column

@@ -169,6 +169,7 @@
             btnGameMatchesAndEvents.TabIndex = 13;
             btnGameMatchesAndEvents.Text = "Game Matches And Events";
             btnGameMatchesAndEvents.UseVisualStyleBackColor = true;
+            btnGameMatchesAndEvents.Click += btnGameMatchesAndEvents_Click;
             // 
             // panelContenido
             // 
