@@ -11,7 +11,7 @@ namespace Project_Final_Database_Fundamentals
 {
     public partial class ucHumanResources : UserControl
     {
-        private readonly int _adminUserId;
+        private readonly int _currentUser;
         private int _selectedPlayerId = 0;
         private int _selectedCoachId = 0;
         private int _selectedRefereeId = 0;
@@ -19,10 +19,10 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedScoutId = 0;
         private int _selectedStaffId = 0;
         private int _selectedStaffRoleId = 0;
-        public ucHumanResources(int adminUserId)
+        public ucHumanResources(int currentUser)
         {
             InitializeComponent();
-            _adminUserId = adminUserId;
+            _currentUser = currentUser;
         }
 
         private async void tabControlHumanResources_SelectedIndexChanged(object sender, EventArgs e)
@@ -174,29 +174,30 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            p.player_id,
-            p.first_name,
-            p.last_name,
-            p.date_of_birth,
-            p.primary_position_id,
-            pos.name AS position_name,
-            p.preferred_foot,
-            p.height,
-            p.weight,
-            p.country_id,
-            c.name AS country_name
-        FROM player p
-        INNER JOIN position pos ON p.primary_position_id = pos.position_id
-        INNER JOIN ""country"" c ON p.country_id = c.country_id
-        WHERE p.is_active = true
-        ORDER BY p.last_name, p.first_name";
+    SELECT 
+        p.player_id,
+        p.first_name,
+        p.last_name,
+        p.date_of_birth,
+        p.primary_position_id,
+        pos.name AS position_name,
+        p.preferred_foot,
+        p.height,
+        p.weight,
+        p.country_id,
+        c.name AS country_name
+    FROM player p
+    INNER JOIN position pos ON p.primary_position_id = pos.position_id
+    INNER JOIN ""country"" c ON p.country_id = c.country_id
+    WHERE p.is_active = true
+    ORDER BY player_id";
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -205,22 +206,74 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvPlayer.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "player_id", "primary_position_id", "country_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvPlayer.Columns[col] != null)
-                                dgvPlayer.Columns[col].Visible = false;
-                        }
-
-                        // Format Date
-                        if (dgvPlayer.Columns["date_of_birth"] != null)
-                            dgvPlayer.Columns["date_of_birth"].DefaultCellStyle.Format = "d";
+                        FormatPlayerGrid(dgvPlayer);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading players: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading players: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatPlayerGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "player_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "date_of_birth", "Date of Birth" },
+        { "position_name", "Position" },
+        { "preferred_foot", "Foot" },
+        { "height", "Height" },
+        { "weight", "Weight" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "primary_position_id", "country_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("player_id"))
+            {
+                dgv.Columns["player_id"].Visible = true;
+                dgv.Columns["player_id"].DisplayIndex = 0;
+                dgv.Columns["player_id"].Width = 60;
+            }
+
+            // Format Date
+            if (dgv.Columns.Contains("date_of_birth"))
+            {
+                dgv.Columns["date_of_birth"].DefaultCellStyle.Format = "d"; // Short date
+            }
+
+            // Optimize width for small numerical columns
+            string[] smallCols = { "height", "weight", "preferred_foot" };
+            foreach (var col in smallCols)
+            {
+                if (dgv.Columns.Contains(col))
+                    dgv.Columns[col].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddPlayer_Click(object sender, EventArgs e)
@@ -276,7 +329,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@height", height);
                     command.Parameters.AddWithValue("@weight", weight);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -345,7 +398,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@height", nudPlayerHeigth.Value);
                     command.Parameters.AddWithValue("@weight", nudPlayerWeight.Value);
                     command.Parameters.AddWithValue("@countryId", (int)cmbPlayerCountry.SelectedValue);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedPlayerId);
 
                     connection.Open();
@@ -387,7 +440,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedPlayerId);
 
                         connection.Open();
@@ -524,13 +577,14 @@ namespace Project_Final_Database_Fundamentals
     FROM coach c
     INNER JOIN ""country"" co ON c.country_id = co.country_id
     WHERE c.is_active = true
-    ORDER BY coach_id";
+    ORDER BY c.last_name, c.first_name"; // Alphabetical sort is better for people
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -539,34 +593,60 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCoach.DataSource = dt;
 
-                        // --- MODIFICACIÓN AQUÍ ---
-
-                        // Configurar coach_id para que sea VISIBLE
-                        if (dgvCoach.Columns["coach_id"] != null)
-                        {
-                            dgvCoach.Columns["coach_id"].Visible = true; // Ahora es true
-                            dgvCoach.Columns["coach_id"].HeaderText = "ID Coach"; // Título bonito
-                            dgvCoach.Columns["coach_id"].DisplayIndex = 0; // Opcional: Que salga primero
-                            dgvCoach.Columns["coach_id"].Width = 50; // Opcional: Que no ocupe mucho espacio
-                        }
-
-                        // Configurar country_id para que sea VISIBLE
-                        if (dgvCoach.Columns["country_id"] != null)
-                        {
-                            dgvCoach.Columns["country_id"].Visible = true; // Ahora es true
-                            dgvCoach.Columns["country_id"].HeaderText = "ID País";
-                        }
-
-                        // Format Date Column
-                        if (dgvCoach.Columns["date_of_birth"] != null)
-                            dgvCoach.Columns["date_of_birth"].DefaultCellStyle.Format = "d";
+                        FormatCoachGrid(dgvCoach);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading coaches: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading coaches: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatCoachGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "coach_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "license_level", "License" },
+        { "date_of_birth", "Date of Birth" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("country_id"))
+                dgv.Columns["country_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("coach_id"))
+            {
+                dgv.Columns["coach_id"].Visible = true;
+                dgv.Columns["coach_id"].DisplayIndex = 0;
+                dgv.Columns["coach_id"].Width = 60;
+            }
+
+            // Format Date
+            if (dgv.Columns.Contains("date_of_birth"))
+            {
+                dgv.Columns["date_of_birth"].DefaultCellStyle.Format = "d"; // Short date
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddCoach_Click(object sender, EventArgs e)
         {
             string firstName = txtCoachFirstName.Text.Trim();
@@ -605,7 +685,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@license", license);
                     command.Parameters.AddWithValue("@dob", dob);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -667,7 +747,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@license", license);
                     command.Parameters.AddWithValue("@dob", dtpCoachBirth.Value);
                     command.Parameters.AddWithValue("@countryId", (int)cmbCoachCountry.SelectedValue);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedCoachId);
 
                     connection.Open();
@@ -709,7 +789,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedCoachId);
 
                         connection.Open();
@@ -818,24 +898,25 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            r.referee_id, 
-            r.first_name, 
-            r.last_name, 
-            r.certification_level,
-            r.date_of_birth,
-            r.country_id,
-            c.name AS country_name
-        FROM referee r
-        INNER JOIN ""country"" c ON r.country_id = c.country_id
-        WHERE r.is_active = true
-        ORDER BY r.last_name, r.first_name";
+    SELECT 
+        r.referee_id, 
+        r.first_name, 
+        r.last_name, 
+        r.certification_level,
+        r.date_of_birth,
+        r.country_id,
+        c.name AS country_name
+    FROM referee r
+    INNER JOIN ""country"" c ON r.country_id = c.country_id
+    WHERE r.is_active = true
+    ORDER BY r.last_name, r.first_name"; // Keep alphabetical sort
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -844,20 +925,60 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvReferee.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvReferee.Columns["referee_id"] != null) dgvReferee.Columns["referee_id"].Visible = true;
-                        if (dgvReferee.Columns["country_id"] != null) dgvReferee.Columns["country_id"].Visible = false;
-
-                        // Format Date Column
-                        if (dgvReferee.Columns["date_of_birth"] != null)
-                            dgvReferee.Columns["date_of_birth"].DefaultCellStyle.Format = "d";
+                        FormatRefereeGrid(dgvReferee);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading referees: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading referees: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatRefereeGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "referee_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "certification_level", "Certification" },
+        { "date_of_birth", "Date of Birth" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("country_id"))
+                dgv.Columns["country_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("referee_id"))
+            {
+                dgv.Columns["referee_id"].Visible = true;
+                dgv.Columns["referee_id"].DisplayIndex = 0;
+                dgv.Columns["referee_id"].Width = 60;
+            }
+
+            // Format Date
+            if (dgv.Columns.Contains("date_of_birth"))
+            {
+                dgv.Columns["date_of_birth"].DefaultCellStyle.Format = "d"; // Short date
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddReferee_Click(object sender, EventArgs e)
         {
             string firstName = txtRefereeFirstName.Text.Trim();
@@ -896,7 +1017,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@level", level);
                     command.Parameters.AddWithValue("@dob", dob);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -958,7 +1079,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@level", level);
                     command.Parameters.AddWithValue("@dob", dtpRefereeBirth.Value);
                     command.Parameters.AddWithValue("@countryId", (int)cmbRefereeCountry.SelectedValue);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedRefereeId);
 
                     connection.Open();
@@ -1000,7 +1121,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedRefereeId);
 
                         connection.Open();
@@ -1144,27 +1265,28 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            a.agent_id, 
-            a.first_name, 
-            a.last_name, 
-            a.license_number,
-            a.date_of_birth,
-            a.agency_id,
-            ag.name AS agency_name,
-            a.country_id,
-            c.name AS country_name
-        FROM agent a
-        INNER JOIN agency ag ON a.agency_id = ag.agency_id
-        INNER JOIN ""country"" c ON a.country_id = c.country_id
-        WHERE a.is_active = true
-        ORDER BY a.last_name, a.first_name";
+    SELECT 
+        a.agent_id, 
+        a.first_name, 
+        a.last_name, 
+        a.license_number,
+        a.date_of_birth,
+        a.agency_id,
+        ag.name AS agency_name,
+        a.country_id,
+        c.name AS country_name
+    FROM agent a
+    INNER JOIN agency ag ON a.agency_id = ag.agency_id
+    INNER JOIN ""country"" c ON a.country_id = c.country_id
+    WHERE a.is_active = true
+    ORDER BY a.last_name, a.first_name"; // Keep alphabetical sort
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1173,21 +1295,65 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvAgent.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvAgent.Columns["agent_id"] != null) dgvAgent.Columns["agent_id"].Visible = false;
-                        if (dgvAgent.Columns["agency_id"] != null) dgvAgent.Columns["agency_id"].Visible = false;
-                        if (dgvAgent.Columns["country_id"] != null) dgvAgent.Columns["country_id"].Visible = false;
-
-                        // Format Date Column
-                        if (dgvAgent.Columns["date_of_birth"] != null)
-                            dgvAgent.Columns["date_of_birth"].DefaultCellStyle.Format = "d";
+                        FormatAgentGrid(dgvAgent);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading agents: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading agents: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatAgentGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "agent_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "license_number", "License No." },
+        { "date_of_birth", "Date of Birth" },
+        { "agency_name", "Agency" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "agency_id", "country_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("agent_id"))
+            {
+                dgv.Columns["agent_id"].Visible = true;
+                dgv.Columns["agent_id"].DisplayIndex = 0;
+                dgv.Columns["agent_id"].Width = 60;
+            }
+
+            // Format Date
+            if (dgv.Columns.Contains("date_of_birth"))
+            {
+                dgv.Columns["date_of_birth"].DefaultCellStyle.Format = "d"; // Short date
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddAgent_Click(object sender, EventArgs e)
         {
             string firstName = txtAgentFirstName.Text.Trim();
@@ -1229,7 +1395,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@fname", firstName);
                     command.Parameters.AddWithValue("@lname", lastName);
                     command.Parameters.AddWithValue("@dob", dob);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1299,7 +1465,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@fname", firstName);
                     command.Parameters.AddWithValue("@lname", lastName);
                     command.Parameters.AddWithValue("@dob", dtpAgentBirth.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedAgentId);
 
                     connection.Open();
@@ -1341,7 +1507,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedAgentId);
 
                         connection.Open();
@@ -1500,32 +1666,34 @@ namespace Project_Final_Database_Fundamentals
             catch (Exception ex) { MessageBox.Show("Error loading countries: " + ex.Message); }
         }
 
-        // 4. Load Main Grid
         private async Task LoadScoutsAsync()
         {
             this.Cursor = Cursors.WaitCursor;
 
+            // Se agregó s.date_of_birth a la consulta
             string query = @"
-        SELECT 
-            s.scout_id, 
-            s.first_name, 
-            s.last_name, 
-            s.region,
-            s.employing_team_id,
-            t.name AS team_name,
-            s.country_id,
-            c.name AS country_name
-        FROM scout s
-        INNER JOIN team t ON s.employing_team_id = t.team_id
-        INNER JOIN ""country"" c ON s.country_id = c.country_id
-        WHERE s.is_active = true
-        ORDER BY s.last_name, s.first_name";
+    SELECT 
+        s.scout_id, 
+        s.first_name, 
+        s.last_name, 
+        s.date_of_birth, 
+        s.region,
+        s.employing_team_id,
+        t.name AS team_name,
+        s.country_id,
+        c.name AS country_name
+    FROM scout s
+    INNER JOIN team t ON s.employing_team_id = t.team_id
+    INNER JOIN ""country"" c ON s.country_id = c.country_id
+    WHERE s.is_active = true
+    ORDER BY s.last_name, s.first_name";
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1534,24 +1702,64 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvScout.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "scout_id", "employing_team_id", "country_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvScout.Columns[col] != null)
-                                dgvScout.Columns[col].Visible = false;
-                        }
+                        FormatScoutGrid(dgvScout);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading scouts: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading scouts: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatScoutGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "scout_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "date_of_birth", "Birth Date" }, // <--- Nuevo Header
+        { "region", "Region" },
+        { "team_name", "Team" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Ocultar llaves foráneas
+            string[] hiddenCols = { "employing_team_id", "country_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Configuración específica ID
+            if (dgv.Columns.Contains("scout_id"))
+            {
+                dgv.Columns["scout_id"].Visible = true;
+                dgv.Columns["scout_id"].DisplayIndex = 0;
+                dgv.Columns["scout_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddScout_Click(object sender, EventArgs e)
         {
             string firstName = txtScoutFirstName.Text.Trim();
             string lastName = txtScoutLastName.Text.Trim();
+            DateTime dob = dtpScoutBirth.Value; // <--- Obtener Fecha
 
             // 1. Validate Combos
             if ((int)cmbScoutTeam.SelectedValue == -1 || (int)cmbScoutCountry.SelectedValue == -1)
@@ -1578,11 +1786,12 @@ namespace Project_Final_Database_Fundamentals
             int countryId = (int)cmbScoutCountry.SelectedValue;
             string region = cmbScoutRegion.SelectedItem.ToString();
 
+            // Query actualizado con date_of_birth
             string query = @"
-        INSERT INTO scout 
-        (employing_team_id, first_name, last_name, country_id, region, created_by) 
-        VALUES 
-        (@teamId, @fname, @lname, @countryId, @region, @creatorId);";
+    INSERT INTO scout 
+    (employing_team_id, first_name, last_name, date_of_birth, country_id, region, created_by) 
+    VALUES 
+    (@teamId, @fname, @lname, @dob, @countryId, @region, @creatorId);";
 
             try
             {
@@ -1592,9 +1801,10 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", teamId);
                     command.Parameters.AddWithValue("@fname", firstName);
                     command.Parameters.AddWithValue("@lname", lastName);
+                    command.Parameters.AddWithValue("@dob", dob); // <--- Parámetro fecha
                     command.Parameters.AddWithValue("@countryId", countryId);
                     command.Parameters.AddWithValue("@region", region);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1628,6 +1838,7 @@ namespace Project_Final_Database_Fundamentals
 
             string firstName = txtScoutFirstName.Text.Trim();
             string lastName = txtScoutLastName.Text.Trim();
+            DateTime dob = dtpScoutBirth.Value; // <--- Obtener Fecha
 
             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
             {
@@ -1635,17 +1846,19 @@ namespace Project_Final_Database_Fundamentals
                 return;
             }
 
+            // Query actualizado con date_of_birth
             string query = @"
-        UPDATE scout SET 
-            employing_team_id = @teamId, 
-            first_name = @fname, 
-            last_name = @lname, 
-            country_id = @countryId, 
-            region = @region,
-            updated_at = CURRENT_TIMESTAMP,
-            updated_by = @updaterId
-        WHERE 
-            scout_id = @id;";
+    UPDATE scout SET 
+        employing_team_id = @teamId, 
+        first_name = @fname, 
+        last_name = @lname, 
+        date_of_birth = @dob,
+        country_id = @countryId, 
+        region = @region,
+        updated_at = CURRENT_TIMESTAMP,
+        updated_by = @updaterId
+    WHERE 
+        scout_id = @id;";
 
             try
             {
@@ -1655,9 +1868,10 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", (int)cmbScoutTeam.SelectedValue);
                     command.Parameters.AddWithValue("@fname", firstName);
                     command.Parameters.AddWithValue("@lname", lastName);
+                    command.Parameters.AddWithValue("@dob", dob); // <--- Parámetro fecha
                     command.Parameters.AddWithValue("@countryId", (int)cmbScoutCountry.SelectedValue);
                     command.Parameters.AddWithValue("@region", cmbScoutRegion.SelectedItem.ToString());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedScoutId);
 
                     connection.Open();
@@ -1699,7 +1913,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedScoutId);
 
                         connection.Open();
@@ -1741,6 +1955,16 @@ namespace Project_Final_Database_Fundamentals
                     txtScoutFirstName.Text = row.Cells["first_name"].Value?.ToString() ?? "";
                     txtScoutLastName.Text = row.Cells["last_name"].Value?.ToString() ?? "";
 
+                    // --- MAPEAR FECHA ---
+                    if (row.Cells["date_of_birth"].Value != null && row.Cells["date_of_birth"].Value != DBNull.Value)
+                    {
+                        dtpScoutBirth.Value = Convert.ToDateTime(row.Cells["date_of_birth"].Value);
+                    }
+                    else
+                    {
+                        dtpScoutBirth.Value = DateTime.Now; // Default si es nulo
+                    }
+
                     // Map Region Combo (String)
                     if (row.Cells["region"].Value != null && row.Cells["region"].Value != DBNull.Value)
                     {
@@ -1771,6 +1995,7 @@ namespace Project_Final_Database_Fundamentals
             _selectedScoutId = 0;
             txtScoutFirstName.Clear();
             txtScoutLastName.Clear();
+            dtpScoutBirth.Value = DateTime.Now; 
 
             if (cmbScoutTeam.Items.Count > 0) cmbScoutTeam.SelectedIndex = 0;
             if (cmbScoutCountry.Items.Count > 0) cmbScoutCountry.SelectedIndex = 0;
@@ -1854,26 +2079,27 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            sm.staff_member_id, 
-            sm.first_name, 
-            sm.last_name, 
-            sm.date_of_birth,
-            sm.role_id,
-            r.role_name AS role_name,
-            sm.country_id,
-            c.name AS country_name
-        FROM staff_member sm
-        INNER JOIN staff_role r ON sm.role_id = r.role_id
-        INNER JOIN ""country"" c ON sm.country_id = c.country_id
-        WHERE sm.is_active = true
-        ORDER BY sm.last_name, sm.first_name";
+    SELECT 
+        sm.staff_member_id, 
+        sm.first_name, 
+        sm.last_name, 
+        sm.date_of_birth,
+        sm.role_id,
+        r.role_name AS role_name,
+        sm.country_id,
+        c.name AS country_name
+    FROM staff_member sm
+    INNER JOIN staff_role r ON sm.role_id = r.role_id
+    INNER JOIN ""country"" c ON sm.country_id = c.country_id
+    WHERE sm.is_active = true
+    ORDER BY sm.last_name, sm.first_name"; // Keep alphabetical sort
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1882,22 +2108,63 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvStaffMember.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "staff_member_id", "role_id", "country_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvStaffMember.Columns[col] != null)
-                                dgvStaffMember.Columns[col].Visible = false;
-                        }
-
-                        // Format Date Column
-                        if (dgvStaffMember.Columns["date_of_birth"] != null)
-                            dgvStaffMember.Columns["date_of_birth"].DefaultCellStyle.Format = "d";
+                        FormatStaffMemberGrid(dgvStaffMember);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading staff: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading staff: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatStaffMemberGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "staff_member_id", "ID" },
+        { "first_name", "First Name" },
+        { "last_name", "Last Name" },
+        { "date_of_birth", "Date of Birth" },
+        { "role_name", "Role" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "role_id", "country_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("staff_member_id"))
+            {
+                dgv.Columns["staff_member_id"].Visible = true;
+                dgv.Columns["staff_member_id"].DisplayIndex = 0;
+                dgv.Columns["staff_member_id"].Width = 60;
+            }
+
+            // Format Date
+            if (dgv.Columns.Contains("date_of_birth"))
+            {
+                dgv.Columns["date_of_birth"].DefaultCellStyle.Format = "d"; // Short date
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddStaffMember_Click(object sender, EventArgs e)
         {
@@ -1938,7 +2205,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@lname", lastName);
                     command.Parameters.AddWithValue("@countryId", countryId);
                     command.Parameters.AddWithValue("@dob", dob);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1999,7 +2266,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@lname", lastName);
                     command.Parameters.AddWithValue("@countryId", (int)cmbStaffMemberCountry.SelectedValue);
                     command.Parameters.AddWithValue("@dob", dtpStaffMemberBirth.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedStaffId);
 
                     connection.Open();
@@ -2041,7 +2308,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedStaffId);
 
                         connection.Open();
@@ -2125,12 +2392,12 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            role_id, 
-            role_name 
-        FROM staff_role
-        WHERE is_active = true
-        ORDER BY role_name";
+    SELECT 
+        role_id, 
+        role_name 
+    FROM staff_role
+    WHERE is_active = true
+    ORDER BY role_name"; // Keep alphabetical sort
 
             try
             {
@@ -2146,20 +2413,45 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvStaffRole.DataSource = dt;
 
-                        // Hide internal ID
-                        if (dgvStaffRole.Columns["role_id"] != null)
-                            dgvStaffRole.Columns["role_id"].Visible = false;
+                        FormatStaffRoleGrid(dgvStaffRole);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading staff roles: " + ex.Message);
+                MessageBox.Show("Error loading staff roles: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatStaffRoleGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "role_id", "ID" },
+        { "role_name", "Role Name" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("role_id"))
+            {
+                dgv.Columns["role_id"].Visible = true;
+                dgv.Columns["role_id"].DisplayIndex = 0;
+                dgv.Columns["role_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddStaffRole_Click(object sender, EventArgs e)
@@ -2182,7 +2474,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", roleName);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2234,7 +2526,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", roleName);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedStaffRoleId);
 
                     connection.Open();
@@ -2276,7 +2568,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedStaffRoleId);
 
                         connection.Open();

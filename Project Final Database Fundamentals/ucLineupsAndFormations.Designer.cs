@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
@@ -165,6 +166,7 @@
             cmbLineupPlayerMatchLineup = new ComboBox();
             label35 = new Label();
             btnUpdateLineupPlayer = new Button();
+            searchTimer = new System.Windows.Forms.Timer(components);
             tabControlLineupsAndFormations.SuspendLayout();
             tabPageSquad.SuspendLayout();
             panel1.SuspendLayout();
@@ -301,6 +303,7 @@
             dgvSquad.DefaultCellStyle = dataGridViewCellStyle1;
             dgvSquad.Location = new Point(0, 0);
             dgvSquad.Name = "dgvSquad";
+            dgvSquad.ReadOnly = true;
             dgvSquad.Size = new Size(729, 247);
             dgvSquad.TabIndex = 0;
             dgvSquad.CellClick += dgvSquad_CellClick;
@@ -336,6 +339,9 @@
             // 
             // cmbSquadSeason
             // 
+            cmbSquadSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadSeason.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadSeason.FormattingEnabled = true;
             cmbSquadSeason.Location = new Point(359, 88);
@@ -355,6 +361,9 @@
             // 
             // cmbSquadTeam
             // 
+            cmbSquadTeam.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadTeam.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadTeam.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadTeam.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadTeam.FormattingEnabled = true;
             cmbSquadTeam.Location = new Point(62, 88);
@@ -470,6 +479,7 @@
             dgvSquadMember.DefaultCellStyle = dataGridViewCellStyle2;
             dgvSquadMember.Location = new Point(0, 0);
             dgvSquadMember.Name = "dgvSquadMember";
+            dgvSquadMember.ReadOnly = true;
             dgvSquadMember.Size = new Size(729, 247);
             dgvSquadMember.TabIndex = 0;
             dgvSquadMember.CellClick += dgvSquadMember_CellClick;
@@ -562,6 +572,9 @@
             // 
             // cmbSquadMemberPlayer
             // 
+            cmbSquadMemberPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadMemberPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadMemberPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadMemberPlayer.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadMemberPlayer.FormattingEnabled = true;
             cmbSquadMemberPlayer.Location = new Point(213, 44);
@@ -581,6 +594,9 @@
             // 
             // cmbSquadMemberSquad
             // 
+            cmbSquadMemberSquad.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadMemberSquad.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadMemberSquad.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadMemberSquad.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadMemberSquad.FormattingEnabled = true;
             cmbSquadMemberSquad.Location = new Point(18, 44);
@@ -696,6 +712,7 @@
             dgvSquadStaff.DefaultCellStyle = dataGridViewCellStyle3;
             dgvSquadStaff.Location = new Point(0, 0);
             dgvSquadStaff.Name = "dgvSquadStaff";
+            dgvSquadStaff.ReadOnly = true;
             dgvSquadStaff.Size = new Size(729, 247);
             dgvSquadStaff.TabIndex = 0;
             dgvSquadStaff.CellClick += dgvSquadStaff_CellClick;
@@ -769,6 +786,9 @@
             // 
             // cmbSquadStaffMember
             // 
+            cmbSquadStaffMember.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadStaffMember.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadStaffMember.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadStaffMember.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadStaffMember.FormattingEnabled = true;
             cmbSquadStaffMember.Location = new Point(213, 44);
@@ -788,6 +808,9 @@
             // 
             // cmbSquadStaffSquad
             // 
+            cmbSquadStaffSquad.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadStaffSquad.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadStaffSquad.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadStaffSquad.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadStaffSquad.FormattingEnabled = true;
             cmbSquadStaffSquad.Location = new Point(18, 44);
@@ -903,6 +926,7 @@
             dgvSquadCoach.DefaultCellStyle = dataGridViewCellStyle4;
             dgvSquadCoach.Location = new Point(0, 0);
             dgvSquadCoach.Name = "dgvSquadCoach";
+            dgvSquadCoach.ReadOnly = true;
             dgvSquadCoach.Size = new Size(729, 247);
             dgvSquadCoach.TabIndex = 0;
             dgvSquadCoach.CellClick += dgvSquadCoach_CellClick;
@@ -976,6 +1000,9 @@
             // 
             // cmbSquadCoachCoach
             // 
+            cmbSquadCoachCoach.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadCoachCoach.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadCoachCoach.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadCoachCoach.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadCoachCoach.FormattingEnabled = true;
             cmbSquadCoachCoach.Location = new Point(213, 44);
@@ -995,6 +1022,9 @@
             // 
             // cmbSquadCoachSquad
             // 
+            cmbSquadCoachSquad.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSquadCoachSquad.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSquadCoachSquad.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSquadCoachSquad.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSquadCoachSquad.FormattingEnabled = true;
             cmbSquadCoachSquad.Location = new Point(18, 44);
@@ -1110,6 +1140,7 @@
             dgvPosition.DefaultCellStyle = dataGridViewCellStyle5;
             dgvPosition.Location = new Point(0, 0);
             dgvPosition.Name = "dgvPosition";
+            dgvPosition.ReadOnly = true;
             dgvPosition.Size = new Size(729, 247);
             dgvPosition.TabIndex = 0;
             dgvPosition.CellClick += dgvPosition_CellClick;
@@ -1294,6 +1325,7 @@
             dgvMatchLineup.DefaultCellStyle = dataGridViewCellStyle6;
             dgvMatchLineup.Location = new Point(0, 0);
             dgvMatchLineup.Name = "dgvMatchLineup";
+            dgvMatchLineup.ReadOnly = true;
             dgvMatchLineup.Size = new Size(729, 247);
             dgvMatchLineup.TabIndex = 0;
             dgvMatchLineup.CellClick += dgvMatchLineup_CellClick;
@@ -1333,6 +1365,9 @@
             // 
             // cmbMatchLineupFormation
             // 
+            cmbMatchLineupFormation.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbMatchLineupFormation.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbMatchLineupFormation.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMatchLineupFormation.FormattingEnabled = true;
             cmbMatchLineupFormation.Location = new Point(18, 113);
             cmbMatchLineupFormation.Name = "cmbMatchLineupFormation";
@@ -1351,6 +1386,9 @@
             // 
             // cmbMatchLineupCoach
             // 
+            cmbMatchLineupCoach.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbMatchLineupCoach.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbMatchLineupCoach.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMatchLineupCoach.FormattingEnabled = true;
             cmbMatchLineupCoach.Location = new Point(398, 43);
             cmbMatchLineupCoach.Name = "cmbMatchLineupCoach";
@@ -1369,6 +1407,9 @@
             // 
             // cmbMatchLineupTeam
             // 
+            cmbMatchLineupTeam.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbMatchLineupTeam.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbMatchLineupTeam.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMatchLineupTeam.FormattingEnabled = true;
             cmbMatchLineupTeam.Location = new Point(206, 43);
             cmbMatchLineupTeam.Name = "cmbMatchLineupTeam";
@@ -1387,6 +1428,9 @@
             // 
             // cmbMatchLineupMatch
             // 
+            cmbMatchLineupMatch.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbMatchLineupMatch.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbMatchLineupMatch.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMatchLineupMatch.FormattingEnabled = true;
             cmbMatchLineupMatch.Location = new Point(18, 43);
             cmbMatchLineupMatch.Name = "cmbMatchLineupMatch";
@@ -1647,6 +1691,7 @@
             dgvLineupPlayer.DefaultCellStyle = dataGridViewCellStyle8;
             dgvLineupPlayer.Location = new Point(0, 0);
             dgvLineupPlayer.Name = "dgvLineupPlayer";
+            dgvLineupPlayer.ReadOnly = true;
             dgvLineupPlayer.Size = new Size(729, 247);
             dgvLineupPlayer.TabIndex = 0;
             dgvLineupPlayer.CellClick += dgvLineupPlayer_CellClick;
@@ -1726,6 +1771,9 @@
             // 
             // cmbLineupPlayerPosition
             // 
+            cmbLineupPlayerPosition.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbLineupPlayerPosition.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbLineupPlayerPosition.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbLineupPlayerPosition.FormattingEnabled = true;
             cmbLineupPlayerPosition.Location = new Point(398, 43);
             cmbLineupPlayerPosition.Name = "cmbLineupPlayerPosition";
@@ -1749,6 +1797,8 @@
             cmbLineupPlayerPlayer.Name = "cmbLineupPlayerPlayer";
             cmbLineupPlayerPlayer.Size = new Size(163, 27);
             cmbLineupPlayerPlayer.TabIndex = 5;
+            cmbLineupPlayerPlayer.SelectionChangeCommitted += cmbLineupPlayerPlayer_SelectionChangeCommitted;
+            cmbLineupPlayerPlayer.TextUpdate += cmbLineupPlayerPlayer_TextUpdate;
             // 
             // label34
             // 
@@ -1762,6 +1812,9 @@
             // 
             // cmbLineupPlayerMatchLineup
             // 
+            cmbLineupPlayerMatchLineup.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbLineupPlayerMatchLineup.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbLineupPlayerMatchLineup.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbLineupPlayerMatchLineup.FormattingEnabled = true;
             cmbLineupPlayerMatchLineup.Location = new Point(18, 43);
             cmbLineupPlayerMatchLineup.Name = "cmbLineupPlayerMatchLineup";
@@ -1793,6 +1846,10 @@
             btnUpdateLineupPlayer.Text = "Update";
             btnUpdateLineupPlayer.UseVisualStyleBackColor = false;
             btnUpdateLineupPlayer.Click += btnUpdateLineupPlayer_Click;
+            // 
+            // searchTimer
+            // 
+            searchTimer.Tick += searchTimer_Tick;
             // 
             // ucLineupsAndFormations
             // 
@@ -1985,5 +2042,6 @@
         private Label label36;
         private CheckBox chkbIsCaptain;
         private TextBox txtFormationName;
+        private System.Windows.Forms.Timer searchTimer;
     }
 }

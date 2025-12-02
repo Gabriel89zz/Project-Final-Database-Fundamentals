@@ -11,7 +11,7 @@ namespace Project_Final_Database_Fundamentals
 {
     public partial class ucGameMatchesAndEvents : UserControl
     {
-        private readonly int _adminUserId;
+        private readonly int _currentUser;
         private int _selectedMatchId = 0;
         private int _selectedMatchEventId = 0;
         private int _selectedMatchOfficialId = 0;
@@ -21,10 +21,11 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedCardId = 0;
         private int _selectedSubstitutionId = 0;
         private int _selectedTeamMatchStatId = 0;
-        public ucGameMatchesAndEvents(int adminUserId)
+        public ucGameMatchesAndEvents(int currentUser)
         {
             InitializeComponent();
-            _adminUserId = adminUserId;
+            _currentUser = currentUser;
+            dtpMatchDate.CustomFormat = "yyyy-MM-dd HH:mm:ss";
         }
 
         private async void tabControlGameMatchesAndEvents_SelectedIndexChanged(object sender, EventArgs e)
@@ -312,39 +313,40 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-            SELECT 
-                m.match_id,
-                m.competition_season_id,
-                (comp.name || ' ' || seas.name) AS comp_display,
-                m.stage_id,
-                st.name AS stage_name,
-                m.stadium_id,
-                std.name AS stadium_name,
-                m.match_date,
-                m.home_team_id,
-                t1.name AS home_team,
-                m.away_team_id,
-                t2.name AS away_team,
-                m.home_score,
-                m.away_score,
-                m.match_status,
-                m.attendance
-            FROM ""match"" m
-            INNER JOIN competition_season cs ON m.competition_season_id = cs.competition_season_id
-            INNER JOIN competition comp ON cs.competition_id = comp.competition_id
-            INNER JOIN season seas ON cs.season_id = seas.season_id
-            INNER JOIN competiton_stage st ON m.stage_id = st.stage_id
-            INNER JOIN stadium std ON m.stadium_id = std.stadium_id
-            INNER JOIN team t1 ON m.home_team_id = t1.team_id
-            INNER JOIN team t2 ON m.away_team_id = t2.team_id
-            WHERE m.is_active = true
-            ORDER BY m.match_date DESC";
+    SELECT 
+        m.match_id,
+        m.competition_season_id,
+        (comp.name || ' ' || seas.name) AS comp_display,
+        m.stage_id,
+        st.name AS stage_name,
+        m.stadium_id,
+        std.name AS stadium_name,
+        m.match_date,
+        m.home_team_id,
+        t1.name AS home_team,
+        m.away_team_id,
+        t2.name AS away_team,
+        m.home_score,
+        m.away_score,
+        m.match_status,
+        m.attendance
+    FROM ""match"" m
+    INNER JOIN competition_season cs ON m.competition_season_id = cs.competition_season_id
+    INNER JOIN competition comp ON cs.competition_id = comp.competition_id
+    INNER JOIN season seas ON cs.season_id = seas.season_id
+    INNER JOIN competiton_stage st ON m.stage_id = st.stage_id
+    INNER JOIN stadium std ON m.stadium_id = std.stadium_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    WHERE m.is_active = true
+    ORDER BY m.match_date DESC";
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -353,31 +355,68 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvMatch.DataSource = dt;
 
-                        // 1. MOSTRAR SOLO EL ID PRINCIPAL (PK)
-                        if (dgvMatch.Columns["match_id"] != null)
-                        {
-                            dgvMatch.Columns["match_id"].Visible = true;
-                            dgvMatch.Columns["match_id"].HeaderText = "ID Match";
-                            dgvMatch.Columns["match_id"].DisplayIndex = 0;
-                            dgvMatch.Columns["match_id"].Width = 60;
-                        }
-
-                        // 2. OCULTAR LAS LLAVES FORÁNEAS (FKs)
-                        string[] hiddenFKs = { "competition_season_id", "stage_id", "stadium_id", "home_team_id", "away_team_id" };
-                        foreach (var col in hiddenFKs)
-                        {
-                            if (dgvMatch.Columns[col] != null)
-                                dgvMatch.Columns[col].Visible = false;
-                        }
-
-                        // Formato de Fecha
-                        if (dgvMatch.Columns["match_date"] != null)
-                            dgvMatch.Columns["match_date"].DefaultCellStyle.Format = "g";
+                        FormatMatchGrid(dgvMatch);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading matches: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading matches: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatMatchGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "match_id", "ID" },
+        { "comp_display", "Competition" },
+        { "stage_name", "Stage" },
+        { "stadium_name", "Stadium" },
+        { "match_date", "Date & Time" },
+        { "home_team", "Home Team" },
+        { "away_team", "Away Team" },
+        { "home_score", "H" }, // Shortened for Score
+        { "away_score", "A" }, // Shortened for Score
+        { "match_status", "Status" },
+        { "attendance", "Attendance" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "competition_season_id", "stage_id", "stadium_id", "home_team_id", "away_team_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("match_id"))
+            {
+                dgv.Columns["match_id"].Visible = true;
+                dgv.Columns["match_id"].DisplayIndex = 0;
+                dgv.Columns["match_id"].Width = 60;
+            }
+
+            // Date formatting (General date/time short pattern)
+            if (dgv.Columns.Contains("match_date"))
+            {
+                dgv.Columns["match_date"].DefaultCellStyle.Format = "g";
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddMatch_Click(object sender, EventArgs e)
         {
@@ -435,7 +474,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@awayScore", awayScore);
                     command.Parameters.AddWithValue("@status", status);
                     command.Parameters.AddWithValue("@attendance", attendance);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -507,7 +546,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@awayScore", (int)nudMatchAwayScore.Value);
                     command.Parameters.AddWithValue("@status", cmbMatchStatus.SelectedItem.ToString());
                     command.Parameters.AddWithValue("@attendance", (int)nudMatchAttendance.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedMatchId);
 
                     connection.Open();
@@ -549,7 +588,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedMatchId);
 
                         connection.Open();
@@ -792,32 +831,33 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            me.event_id, 
-            me.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            me.event_type_id,
-            et.name AS event_name,
-            me.minute,
-            me.team_id,
-            t.name AS team_name,
-            me.player_id,
-            (p.first_name || ' ' || p.last_name) AS player_name
-        FROM match_event me
-        INNER JOIN match m ON me.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN event_type et ON me.event_type_id = et.event_type_id
-        INNER JOIN team t ON me.team_id = t.team_id
-        INNER JOIN player p ON me.player_id = p.player_id
-        WHERE me.is_active = true
-        ORDER BY m.match_date DESC, me.minute";
+    SELECT 
+        me.event_id, 
+        me.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        me.event_type_id,
+        et.name AS event_name,
+        me.minute,
+        me.team_id,
+        t.name AS team_name,
+        me.player_id,
+        (p.first_name || ' ' || p.last_name) AS player_name
+    FROM match_event me
+    INNER JOIN ""match"" m ON me.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN event_type et ON me.event_type_id = et.event_type_id
+    INNER JOIN team t ON me.team_id = t.team_id
+    INNER JOIN player p ON me.player_id = p.player_id
+    WHERE me.is_active = true
+    ORDER BY m.match_date DESC, me.minute"; // Keep chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -826,19 +866,63 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvMatchEvent.DataSource = dt;
 
-                        // NOTE: We do NOT hide "match_event_id" as requested.
-                        // We only hide the foreign key columns to keep it clean.
-                        string[] hiddenCols = { "match_id", "event_type_id", "team_id", "player_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvMatchEvent.Columns[col] != null)
-                                dgvMatchEvent.Columns[col].Visible = false;
-                        }
+                        FormatMatchEventGrid(dgvMatchEvent);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading events: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading events: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatMatchEventGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "event_id", "ID" },
+        { "match_display", "Match" },
+        { "event_name", "Event" },
+        { "minute", "Min" },
+        { "team_name", "Team" },
+        { "player_name", "Player" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "event_type_id", "team_id", "player_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("event_id"))
+            {
+                dgv.Columns["event_id"].Visible = true;
+                dgv.Columns["event_id"].DisplayIndex = 0;
+                dgv.Columns["event_id"].Width = 60;
+            }
+
+            // "Min" column should be narrow
+            if (dgv.Columns.Contains("minute"))
+            {
+                dgv.Columns["minute"].Width = 50;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddMatchEvent_Click(object sender, EventArgs e)
         {
@@ -875,7 +959,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", teamId);
                     command.Parameters.AddWithValue("@playerId", playerId);
                     command.Parameters.AddWithValue("@minute", minute);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -930,7 +1014,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", (int)cmbMatchEventTeam.SelectedValue);
                     command.Parameters.AddWithValue("@playerId", (int)cmbMatchEventPlayer.SelectedValue);
                     command.Parameters.AddWithValue("@minute", (int)nudMatchEventMinute.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedMatchEventId);
 
                     connection.Open();
@@ -972,7 +1056,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedMatchEventId);
 
                         connection.Open();
@@ -1149,26 +1233,27 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            mo.match_official_id, 
-            mo.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            mo.referee_id,
-            (r.first_name || ' ' || r.last_name) AS referee_name,
-            mo.role
-        FROM match_official mo
-        INNER JOIN ""match"" m ON mo.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN referee r ON mo.referee_id = r.referee_id
-        WHERE mo.is_active = true
-        ORDER BY m.match_date DESC, mo.role";
+    SELECT 
+        mo.match_official_id, 
+        mo.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        mo.referee_id,
+        (r.first_name || ' ' || r.last_name) AS referee_name,
+        mo.role
+    FROM match_official mo
+    INNER JOIN ""match"" m ON mo.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN referee r ON mo.referee_id = r.referee_id
+    WHERE mo.is_active = true
+    ORDER BY m.match_date DESC, mo.role"; // Keep logical sorting
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1177,19 +1262,55 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvMatchOfficial.DataSource = dt;
 
-                        // NOTE: match_official_id is VISIBLE as requested.
-                        // We only hide the foreign keys.
-                        string[] hiddenCols = { "match_id", "referee_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvMatchOfficial.Columns[col] != null)
-                                dgvMatchOfficial.Columns[col].Visible = false;
-                        }
+                        FormatMatchOfficialGrid(dgvMatchOfficial);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading match officials: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading match officials: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatMatchOfficialGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "match_official_id", "ID" },
+        { "match_display", "Match" },
+        { "referee_name", "Referee" },
+        { "role", "Role" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "referee_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("match_official_id"))
+            {
+                dgv.Columns["match_official_id"].Visible = true;
+                dgv.Columns["match_official_id"].DisplayIndex = 0;
+                dgv.Columns["match_official_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddMatchOfficial_Click(object sender, EventArgs e)
         {
@@ -1226,7 +1347,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@matchId", matchId);
                     command.Parameters.AddWithValue("@refereeId", refereeId);
                     command.Parameters.AddWithValue("@role", role);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1282,7 +1403,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@matchId", (int)cmbMatchOfficialMatch.SelectedValue);
                     command.Parameters.AddWithValue("@refereeId", (int)cmbMatchOfficialReferee.SelectedValue);
                     command.Parameters.AddWithValue("@role", cmbMatchOfficialRole.SelectedItem.ToString());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedMatchOfficialId);
 
                     connection.Open();
@@ -1324,7 +1445,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedMatchOfficialId);
 
                         connection.Open();
@@ -1490,7 +1611,7 @@ namespace Project_Final_Database_Fundamentals
             first_name || ' ' || last_name AS full_name 
         FROM player 
         WHERE is_active = true 
-        ORDER BY last_name";
+        ORDER BY player_id LIMIT 2000";
 
             try
             {
@@ -1541,35 +1662,36 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            g.goal_id, 
-            g.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            g.scoring_team_id,
-            team.name AS scoring_team,
-            g.scoring_player_id,
-            (p1.first_name || ' ' || p1.last_name) AS scorer_name,
-            g.assist_player_id,
-            (p2.first_name || ' ' || p2.last_name) AS assist_name,
-            g.minute,
-            g.is_own_goal,
-            g.is_penalty,
-            g.body_part
-        FROM goal g
-        INNER JOIN ""match"" m ON g.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team ON g.scoring_team_id = team.team_id
-        INNER JOIN player p1 ON g.scoring_player_id = p1.player_id
-        LEFT JOIN player p2 ON g.assist_player_id = p2.player_id -- LEFT JOIN for optional assist
-        WHERE g.is_active = true
-        ORDER BY m.match_date DESC, g.minute";
+    SELECT 
+        g.goal_id, 
+        g.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        g.scoring_team_id,
+        team.name AS scoring_team,
+        g.scoring_player_id,
+        (p1.first_name || ' ' || p1.last_name) AS scorer_name,
+        g.assist_player_id,
+        (p2.first_name || ' ' || p2.last_name) AS assist_name,
+        g.minute,
+        g.is_own_goal,
+        g.is_penalty,
+        g.body_part
+    FROM goal g
+    INNER JOIN ""match"" m ON g.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team ON g.scoring_team_id = team.team_id
+    INNER JOIN player p1 ON g.scoring_player_id = p1.player_id
+    LEFT JOIN player p2 ON g.assist_player_id = p2.player_id -- LEFT JOIN for optional assist
+    WHERE g.is_active = true
+    ORDER BY m.match_date DESC, g.minute"; // Keep logical chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1578,18 +1700,66 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvGoal.DataSource = dt;
 
-                        // Only hide FK IDs, keep goal_id VISIBLE as requested
-                        string[] hiddenCols = { "match_id", "scoring_team_id", "scoring_player_id", "assist_player_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvGoal.Columns[col] != null)
-                                dgvGoal.Columns[col].Visible = false;
-                        }
+                        FormatGoalGrid(dgvGoal);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading goals: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading goals: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatGoalGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "goal_id", "ID" },
+        { "match_display", "Match" },
+        { "scoring_team", "Team" },
+        { "scorer_name", "Scorer" },
+        { "assist_name", "Assist" },
+        { "minute", "Min" },
+        { "is_own_goal", "Own Goal" },
+        { "is_penalty", "Penalty" },
+        { "body_part", "Body Part" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "scoring_team_id", "scoring_player_id", "assist_player_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("goal_id"))
+            {
+                dgv.Columns["goal_id"].Visible = true;
+                dgv.Columns["goal_id"].DisplayIndex = 0;
+                dgv.Columns["goal_id"].Width = 60;
+            }
+
+            // Optimize width for small columns
+            if (dgv.Columns.Contains("minute"))
+            {
+                dgv.Columns["minute"].Width = 50;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddGoal_Click(object sender, EventArgs e)
         {
@@ -1643,7 +1813,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@isOwn", isOwn);
                     command.Parameters.AddWithValue("@isPenalty", isPenalty);
                     command.Parameters.AddWithValue("@bodyPart", bodyPart);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1710,7 +1880,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@isOwn", chkbIsOwnGoal.Checked);
                     command.Parameters.AddWithValue("@isPenalty", chkbIsPenalty.Checked);
                     command.Parameters.AddWithValue("@bodyPart", cmbGoalBodyPart.SelectedItem.ToString());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedGoalId);
 
                     connection.Open();
@@ -1752,7 +1922,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedGoalId);
 
                         connection.Open();
@@ -1981,34 +2151,35 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            s.shot_id, 
-            s.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            s.team_id,
-            t.name AS team_name,
-            s.player_id,
-            (p.first_name || ' ' || p.last_name) AS player_name,
-            s.minute,
-            s.is_on_target,
-            s.is_goal,
-            s.location_x,
-            s.location_y,
-            s.body_part
-        FROM shot s
-        INNER JOIN ""match"" m ON s.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team t ON s.team_id = t.team_id
-        INNER JOIN player p ON s.player_id = p.player_id
-        WHERE s.is_active = true
-        ORDER BY m.match_date DESC, s.minute";
+    SELECT 
+        s.shot_id, 
+        s.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        s.team_id,
+        t.name AS team_name,
+        s.player_id,
+        (p.first_name || ' ' || p.last_name) AS player_name,
+        s.minute,
+        s.is_on_target,
+        s.is_goal,
+        s.location_x,
+        s.location_y,
+        s.body_part
+    FROM shot s
+    INNER JOIN ""match"" m ON s.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team t ON s.team_id = t.team_id
+    INNER JOIN player p ON s.player_id = p.player_id
+    WHERE s.is_active = true
+    ORDER BY m.match_date DESC, s.minute"; // Keep chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -2017,18 +2188,69 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvShot.DataSource = dt;
 
-                        // Only hide Foreign Keys, keep shot_id visible
-                        string[] hiddenCols = { "match_id", "team_id", "player_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvShot.Columns[col] != null)
-                                dgvShot.Columns[col].Visible = false;
-                        }
+                        FormatShotGrid(dgvShot);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading shots: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading shots: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatShotGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "shot_id", "ID" },
+        { "match_display", "Match" },
+        { "team_name", "Team" },
+        { "player_name", "Player" },
+        { "minute", "Min" },
+        { "is_on_target", "On Target" },
+        { "is_goal", "Goal" },
+        { "location_x", "X" },
+        { "location_y", "Y" },
+        { "body_part", "Body Part" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "team_id", "player_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("shot_id"))
+            {
+                dgv.Columns["shot_id"].Visible = true;
+                dgv.Columns["shot_id"].DisplayIndex = 0;
+                dgv.Columns["shot_id"].Width = 60;
+            }
+
+            // Optimize width for small numerical columns
+            string[] smallCols = { "minute", "location_x", "location_y" };
+            foreach (var col in smallCols)
+            {
+                if (dgv.Columns.Contains(col))
+                    dgv.Columns[col].Width = 40;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddShot_Click(object sender, EventArgs e)
         {
@@ -2078,7 +2300,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@x", locX);
                     command.Parameters.AddWithValue("@y", locY);
                     command.Parameters.AddWithValue("@body", bodyPart);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2141,7 +2363,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@x", nudShotLocationX.Value);
                     command.Parameters.AddWithValue("@y", nudShotLocationY.Value);
                     command.Parameters.AddWithValue("@body", cmbShotBodyPart.SelectedItem.ToString());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedShotId);
 
                     connection.Open();
@@ -2183,7 +2405,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedShotId);
 
                         connection.Open();
@@ -2429,36 +2651,37 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            f.foul_id, 
-            f.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            f.fouling_team_id,
-            teamA.name AS foulling_team,
-            f.fouled_team_id,
-            teamB.name AS fouled_team,
-            f.fouling_player_id,
-            (p1.first_name || ' ' || p1.last_name) AS foulling_player,
-            f.fouled_player_id,
-            (p2.first_name || ' ' || p2.last_name) AS fouled_player,
-            f.minute,
-            f.is_penalty_kick
-        FROM foul f
-        INNER JOIN ""match"" m ON f.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team teamA ON f.fouling_team_id = teamA.team_id
-        INNER JOIN team teamB ON f.fouled_team_id = teamB.team_id
-        INNER JOIN player p1 ON f.fouling_player_id = p1.player_id
-        INNER JOIN player p2 ON f.fouled_player_id = p2.player_id
-        WHERE f.is_active = true
-        ORDER BY m.match_date DESC, f.minute";
+    SELECT 
+        f.foul_id, 
+        f.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        f.fouling_team_id,
+        teamA.name AS foulling_team,
+        f.fouled_team_id,
+        teamB.name AS fouled_team,
+        f.fouling_player_id,
+        (p1.first_name || ' ' || p1.last_name) AS foulling_player,
+        f.fouled_player_id,
+        (p2.first_name || ' ' || p2.last_name) AS fouled_player,
+        f.minute,
+        f.is_penalty_kick
+    FROM foul f
+    INNER JOIN ""match"" m ON f.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team teamA ON f.fouling_team_id = teamA.team_id
+    INNER JOIN team teamB ON f.fouled_team_id = teamB.team_id
+    INNER JOIN player p1 ON f.fouling_player_id = p1.player_id
+    INNER JOIN player p2 ON f.fouled_player_id = p2.player_id
+    WHERE f.is_active = true
+    ORDER BY m.match_date DESC, f.minute"; // Keep chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -2467,18 +2690,65 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvFoul.DataSource = dt;
 
-                        // Hide FK columns, keep foul_id visible
-                        string[] hiddenCols = { "match_id", "fouling_team_id", "fouled_team_id", "fouling_player_id", "fouled_player_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvFoul.Columns[col] != null)
-                                dgvFoul.Columns[col].Visible = false;
-                        }
+                        FormatFoulGrid(dgvFoul);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading fouls: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading fouls: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatFoulGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "foul_id", "ID" },
+        { "match_display", "Match" },
+        { "foulling_team", "Fouling Team" },
+        { "fouled_team", "Fouled Team" },
+        { "foulling_player", "Fouling Player" },
+        { "fouled_player", "Fouled Player" },
+        { "minute", "Min" },
+        { "is_penalty_kick", "Penalty" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "fouling_team_id", "fouled_team_id", "fouling_player_id", "fouled_player_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("foul_id"))
+            {
+                dgv.Columns["foul_id"].Visible = true;
+                dgv.Columns["foul_id"].DisplayIndex = 0;
+                dgv.Columns["foul_id"].Width = 60;
+            }
+
+            // Optimize width for small numerical columns
+            if (dgv.Columns.Contains("minute"))
+            {
+                dgv.Columns["minute"].Width = 50;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddFoul_Click(object sender, EventArgs e)
         {
@@ -2526,7 +2796,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@p2", fouledPlayer);
                     command.Parameters.AddWithValue("@min", minute);
                     command.Parameters.AddWithValue("@isPen", isPenalty);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2586,7 +2856,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@p2", (int)cmbFouledPlayer.SelectedValue);
                     command.Parameters.AddWithValue("@min", (int)nudFoulMinute.Value);
                     command.Parameters.AddWithValue("@isPen", chkbIsPenaltyKick.Checked);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedFoulId);
 
                     connection.Open();
@@ -2628,7 +2898,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedFoulId);
 
                         connection.Open();
@@ -2669,14 +2939,14 @@ namespace Project_Final_Database_Fundamentals
                     if (row.Cells["match_id"].Value != null && row.Cells["match_id"].Value != DBNull.Value)
                         cmbFoulMatch.SelectedValue = Convert.ToInt32(row.Cells["match_id"].Value);
 
-                    if (row.Cells["foulling_team_id"].Value != null && row.Cells["foulling_team_id"].Value != DBNull.Value)
-                        cmbFoulFoulingTeam.SelectedValue = Convert.ToInt32(row.Cells["foulling_team_id"].Value);
+                    if (row.Cells["fouling_team_id"].Value != null && row.Cells["fouling_team_id"].Value != DBNull.Value)
+                        cmbFoulFoulingTeam.SelectedValue = Convert.ToInt32(row.Cells["fouling_team_id"].Value);
 
                     if (row.Cells["fouled_team_id"].Value != null && row.Cells["fouled_team_id"].Value != DBNull.Value)
                         cmbFouledTeam.SelectedValue = Convert.ToInt32(row.Cells["fouled_team_id"].Value);
 
-                    if (row.Cells["foulling_player_id"].Value != null && row.Cells["foulling_player_id"].Value != DBNull.Value)
-                        cmbFoulingPlayer.SelectedValue = Convert.ToInt32(row.Cells["foulling_player_id"].Value);
+                    if (row.Cells["fouling_player_id"].Value != null && row.Cells["fouling_player_id"].Value != DBNull.Value)
+                        cmbFoulingPlayer.SelectedValue = Convert.ToInt32(row.Cells["fouling_player_id"].Value);
 
                     if (row.Cells["fouled_player_id"].Value != null && row.Cells["fouled_player_id"].Value != DBNull.Value)
                         cmbFouledPlayer.SelectedValue = Convert.ToInt32(row.Cells["fouled_player_id"].Value);
@@ -2803,7 +3073,7 @@ namespace Project_Final_Database_Fundamentals
             first_name || ' ' || last_name AS full_name 
         FROM player 
         WHERE is_active = true 
-        ORDER BY last_name";
+        ORDER BY last_name LIMIT 1000";
 
             try
             {
@@ -2837,31 +3107,32 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            c.card_id, 
-            c.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            c.team_id,
-            t.name AS team_name,
-            c.player_id,
-            (p.first_name || ' ' || p.last_name) AS player_name,
-            c.card_type,
-            c.minute,
-            c.reason
-        FROM card c
-        INNER JOIN ""match"" m ON c.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team t ON c.team_id = t.team_id
-        INNER JOIN player p ON c.player_id = p.player_id
-        WHERE c.is_active = true
-        ORDER BY m.match_date DESC, c.minute";
+    SELECT 
+        c.card_id, 
+        c.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        c.team_id,
+        t.name AS team_name,
+        c.player_id,
+        (p.first_name || ' ' || p.last_name) AS player_name,
+        c.card_type,
+        c.minute,
+        c.reason
+    FROM card c
+    INNER JOIN ""match"" m ON c.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team t ON c.team_id = t.team_id
+    INNER JOIN player p ON c.player_id = p.player_id
+    WHERE c.is_active = true
+    ORDER BY m.match_date DESC, c.minute"; // Keep chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -2870,19 +3141,64 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCard.DataSource = dt;
 
-                        // NOTE: Keeping card_id visible as requested.
-                        // Hiding only Foreign Keys
-                        string[] hiddenCols = { "match_id", "team_id", "player_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvCard.Columns[col] != null)
-                                dgvCard.Columns[col].Visible = false;
-                        }
+                        FormatCardGrid(dgvCard);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading cards: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading cards: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatCardGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "card_id", "ID" },
+        { "match_display", "Match" },
+        { "team_name", "Team" },
+        { "player_name", "Player" },
+        { "card_type", "Card Type" },
+        { "minute", "Min" },
+        { "reason", "Reason" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "team_id", "player_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("card_id"))
+            {
+                dgv.Columns["card_id"].Visible = true;
+                dgv.Columns["card_id"].DisplayIndex = 0;
+                dgv.Columns["card_id"].Width = 60;
+            }
+
+            // Optimize width for small numerical columns
+            if (dgv.Columns.Contains("minute"))
+            {
+                dgv.Columns["minute"].Width = 50;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddCard_Click(object sender, EventArgs e)
         {
@@ -2926,7 +3242,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@type", type);
                     command.Parameters.AddWithValue("@minute", minute);
                     command.Parameters.AddWithValue("@reason", reason);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2983,7 +3299,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@type", cmbCardType.SelectedItem.ToString());
                     command.Parameters.AddWithValue("@minute", (int)nudCardMinute.Value);
                     command.Parameters.AddWithValue("@reason", txtCardReason.Text.Trim());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedCardId);
 
                     connection.Open();
@@ -3025,7 +3341,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedCardId);
 
                         connection.Open();
@@ -3238,33 +3554,34 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            s.substitution_id, 
-            s.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            s.team_id,
-            t.name AS team_name,
-            s.player_in_id,
-            (p1.first_name || ' ' || p1.last_name) AS player_in,
-            s.player_out_id,
-            (p2.first_name || ' ' || p2.last_name) AS player_out,
-            s.minute,
-            s.reason
-        FROM substitution s
-        INNER JOIN ""match"" m ON s.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team t ON s.team_id = t.team_id
-        INNER JOIN player p1 ON s.player_in_id = p1.player_id
-        INNER JOIN player p2 ON s.player_out_id = p2.player_id
-        WHERE s.is_active = true
-        ORDER BY m.match_date DESC, s.minute";
+    SELECT 
+        s.substitution_id, 
+        s.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        s.team_id,
+        t.name AS team_name,
+        s.player_in_id,
+        (p1.first_name || ' ' || p1.last_name) AS player_in,
+        s.player_out_id,
+        (p2.first_name || ' ' || p2.last_name) AS player_out,
+        s.minute,
+        s.reason
+    FROM substitution s
+    INNER JOIN ""match"" m ON s.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team t ON s.team_id = t.team_id
+    INNER JOIN player p1 ON s.player_in_id = p1.player_id
+    INNER JOIN player p2 ON s.player_out_id = p2.player_id
+    WHERE s.is_active = true
+    ORDER BY m.match_date DESC, s.minute"; // Keep chronological order
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -3273,19 +3590,64 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvSubstitution.DataSource = dt;
 
-                        // NOTE: substitution_id is VISIBLE.
-                        // We only hide the FK columns.
-                        string[] hiddenCols = { "match_id", "team_id", "player_in_id", "player_out_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvSubstitution.Columns[col] != null)
-                                dgvSubstitution.Columns[col].Visible = false;
-                        }
+                        FormatSubstitutionGrid(dgvSubstitution);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading substitutions: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading substitutions: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatSubstitutionGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "substitution_id", "ID" },
+        { "match_display", "Match" },
+        { "team_name", "Team" },
+        { "player_in", "Player In" },
+        { "player_out", "Player Out" },
+        { "minute", "Min" },
+        { "reason", "Reason" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "team_id", "player_in_id", "player_out_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("substitution_id"))
+            {
+                dgv.Columns["substitution_id"].Visible = true;
+                dgv.Columns["substitution_id"].DisplayIndex = 0;
+                dgv.Columns["substitution_id"].Width = 60;
+            }
+
+            // Optimize width for small numerical columns
+            if (dgv.Columns.Contains("minute"))
+            {
+                dgv.Columns["minute"].Width = 50;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
         private async void btnAddSubstitution_Click(object sender, EventArgs e)
         {
@@ -3330,7 +3692,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@pOut", playerOut);
                     command.Parameters.AddWithValue("@min", minute);
                     command.Parameters.AddWithValue("@reason", reason);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -3387,7 +3749,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@pOut", (int)cmbSubstitutionPlayerOut.SelectedValue);
                     command.Parameters.AddWithValue("@min", (int)nudSubstitutionMinute.Value);
                     command.Parameters.AddWithValue("@reason", txtSubstitutionReason.Text.Trim());
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedSubstitutionId);
 
                     connection.Open();
@@ -3429,7 +3791,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedSubstitutionId);
 
                         connection.Open();
@@ -3588,28 +3950,29 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            tms.team_match_stat_id, 
-            tms.match_id,
-            (t1.name || ' vs ' || t2.name) AS match_display,
-            tms.team_id,
-            t.name AS team_name,
-            tms.possession_percentage,
-            tms.corners,
-            tms.offsides
-        FROM team_match_stat tms
-        INNER JOIN ""match"" m ON tms.match_id = m.match_id
-        INNER JOIN team t1 ON m.home_team_id = t1.team_id
-        INNER JOIN team t2 ON m.away_team_id = t2.team_id
-        INNER JOIN team t ON tms.team_id = t.team_id
-        WHERE tms.is_active = true
-        ORDER BY m.match_date DESC, t.name";
+    SELECT 
+        tms.team_match_stat_id, 
+        tms.match_id,
+        (t1.name || ' vs ' || t2.name) AS match_display,
+        tms.team_id,
+        t.name AS team_name,
+        tms.possession_percentage,
+        tms.corners,
+        tms.offsides
+    FROM team_match_stat tms
+    INNER JOIN ""match"" m ON tms.match_id = m.match_id
+    INNER JOIN team t1 ON m.home_team_id = t1.team_id
+    INNER JOIN team t2 ON m.away_team_id = t2.team_id
+    INNER JOIN team t ON tms.team_id = t.team_id
+    WHERE tms.is_active = true
+    ORDER BY m.match_date DESC, t.name"; // Keep logical sorting
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -3618,21 +3981,58 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvTeamMatchStat.DataSource = dt;
 
-                        // NOTE: team_match_stat_id is VISIBLE.
-                        // We only hide the Foreign Keys.
-                        string[] hiddenCols = { "match_id", "team_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvTeamMatchStat.Columns[col] != null)
-                                dgvTeamMatchStat.Columns[col].Visible = false;
-                        }
+                        FormatTeamMatchStatGrid(dgvTeamMatchStat);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading stats: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading stats: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatTeamMatchStatGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "team_match_stat_id", "ID" },
+        { "match_display", "Match" },
+        { "team_name", "Team" },
+        { "possession_percentage", "Possession (%)" },
+        { "corners", "Corners" },
+        { "offsides", "Offsides" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "match_id", "team_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("team_match_stat_id"))
+            {
+                dgv.Columns["team_match_stat_id"].Visible = true;
+                dgv.Columns["team_match_stat_id"].DisplayIndex = 0;
+                dgv.Columns["team_match_stat_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddTeamMatchStat_Click(object sender, EventArgs e)
         {
             // 1. Validate Combos
@@ -3666,7 +4066,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@possession", possession);
                     command.Parameters.AddWithValue("@corners", corners);
                     command.Parameters.AddWithValue("@offsides", offsides);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -3725,7 +4125,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@possession", nudPossesionPorcentage.Value);
                     command.Parameters.AddWithValue("@corners", (int)nudCorners.Value);
                     command.Parameters.AddWithValue("@offsides", (int)nudOffsides.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedTeamMatchStatId);
 
                     connection.Open();
@@ -3767,7 +4167,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                        command.Parameters.AddWithValue("@updaterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedTeamMatchStatId);
 
                         connection.Open();

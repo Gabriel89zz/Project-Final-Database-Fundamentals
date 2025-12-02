@@ -11,7 +11,7 @@ namespace Project_Final_Database_Fundamentals
 {
     public partial class ucCompetitionsAndSeasons : UserControl
     {
-        private readonly int _adminUserId;
+        private readonly int _currentUser;
         private int _selectedCompetitionId = 0;
         private int _selectedCompetitionSeasonId = 0;
         private int _selectedCompetitionTypeId = 0;
@@ -22,10 +22,10 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedGroupStandingId = 0;
         private int _selectedCompSeasonTeamId = 0;
 
-        public ucCompetitionsAndSeasons(int adminUserId)
+        public ucCompetitionsAndSeasons(int currentUser)
         {
             InitializeComponent();
-            _adminUserId = adminUserId;
+            _currentUser = currentUser;
         }
 
 
@@ -125,27 +125,28 @@ namespace Project_Final_Database_Fundamentals
 
             // We need 3 JOINS to show names instead of IDs
             string query = @"
-        SELECT 
-            c.competition_id, 
-            c.name, 
-            c.country_id, 
-            co.name AS country_name,
-            c.confederation_id,
-            conf.name AS confederation_name,
-            c.competition_type_id,
-            ct.type_name AS type_name
-        FROM competition c
-        INNER JOIN ""country"" co ON c.country_id = co.country_id
-        INNER JOIN ""confederation"" conf ON c.confederation_id = conf.confederation_id
-        INNER JOIN competition_type ct ON c.competition_type_id = ct.type_id
-        WHERE c.is_active = true
-        ORDER BY c.competition_id DESC";
+    SELECT 
+        c.competition_id, 
+        c.name, 
+        c.country_id, 
+        co.name AS country_name,
+        c.confederation_id,
+        conf.name AS confederation_name,
+        c.competition_type_id,
+        ct.type_name AS type_name
+    FROM competition c
+    INNER JOIN ""country"" co ON c.country_id = co.country_id
+    INNER JOIN ""confederation"" conf ON c.confederation_id = conf.confederation_id
+    INNER JOIN competition_type ct ON c.competition_type_id = ct.type_id
+    WHERE c.is_active = true
+    ORDER BY c.competition_id ASC"; // Changed to ASC for consistency
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -154,18 +155,56 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCompetition.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "competition_id", "country_id", "confederation_id", "competition_type_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvCompetition.Columns[col] != null)
-                                dgvCompetition.Columns[col].Visible = false;
-                        }
+                        FormatCompetitionGrid(dgvCompetition);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading competitions: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading competitions: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatCompetitionGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "competition_id", "ID" },
+        { "name", "Competition Name" },
+        { "country_name", "Country" },
+        { "confederation_name", "Confederation" },
+        { "type_name", "Competition Type" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "country_id", "confederation_id", "competition_type_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("competition_id"))
+            {
+                dgv.Columns["competition_id"].Visible = true;
+                dgv.Columns["competition_id"].DisplayIndex = 0;
+                dgv.Columns["competition_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddCompetition_Click(object sender, EventArgs e)
@@ -213,7 +252,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@countryId", countryId);
                     command.Parameters.AddWithValue("@confedId", confedId);
                     command.Parameters.AddWithValue("@typeId", typeId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -278,7 +317,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@countryId", countryId);
                     command.Parameters.AddWithValue("@confedId", confedId);
                     command.Parameters.AddWithValue("@typeId", typeId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@compId", _selectedCompetitionId);
 
                     connection.Open();
@@ -320,7 +359,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@compId", _selectedCompetitionId);
 
                         connection.Open();
@@ -352,22 +391,53 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCompetition_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCompetition.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvCompetition.Rows[e.RowIndex];
 
-                _selectedCompetitionId = Convert.ToInt32(row.Cells["competition_id"].Value);
-                txtNameCompetition.Text = row.Cells["name"].Value.ToString();
+                    if (row.IsNewRow) return;
 
-                // Set 3 ComboBoxes
-                if (row.Cells["country_id"].Value != DBNull.Value)
-                    cmbCompetitionCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    if (row.Cells["competition_id"].Value == null || row.Cells["competition_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["confederation_id"].Value != DBNull.Value)
-                    cmbCompetitionConfederation.SelectedValue = Convert.ToInt32(row.Cells["confederation_id"].Value);
+                    _selectedCompetitionId = Convert.ToInt32(row.Cells["competition_id"].Value);
+                    txtNameCompetition.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
 
-                if (row.Cells["competition_type_id"].Value != DBNull.Value)
-                    cmbCompetitionType.SelectedValue = Convert.ToInt32(row.Cells["competition_type_id"].Value);
+                    if (row.Cells["country_id"].Value != null && row.Cells["country_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetitionCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetitionCountry.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["confederation_id"].Value != null && row.Cells["confederation_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetitionConfederation.SelectedValue = Convert.ToInt32(row.Cells["confederation_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetitionConfederation.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["competition_type_id"].Value != null && row.Cells["competition_type_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetitionType.SelectedValue = Convert.ToInt32(row.Cells["competition_type_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetitionType.SelectedIndex = -1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -511,23 +581,24 @@ namespace Project_Final_Database_Fundamentals
 
             // Double JOIN to get names
             string query = @"
-        SELECT 
-            cs.competition_season_id, 
-            cs.competition_id, 
-            c.name AS competition_name,
-            cs.season_id,
-            s.name AS season_name
-        FROM competition_season cs
-        INNER JOIN competition c ON cs.competition_id = c.competition_id
-        INNER JOIN season s ON cs.season_id = s.season_id
-        WHERE cs.is_active = true
-        ORDER BY cs.competition_season_id DESC";
+    SELECT 
+        cs.competition_season_id, 
+        cs.competition_id, 
+        c.name AS competition_name,
+        cs.season_id,
+        s.name AS season_name
+    FROM competition_season cs
+    INNER JOIN competition c ON cs.competition_id = c.competition_id
+    INNER JOIN season s ON cs.season_id = s.season_id
+    WHERE cs.is_active = true
+    ORDER BY cs.competition_season_id ASC"; // Changed to ASC for consistency
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -536,18 +607,54 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCompetitionSeason.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvCompetitionSeason.Columns["competition_season_id"] != null)
-                            dgvCompetitionSeason.Columns["competition_season_id"].Visible = false;
-                        if (dgvCompetitionSeason.Columns["competition_id"] != null)
-                            dgvCompetitionSeason.Columns["competition_id"].Visible = false;
-                        if (dgvCompetitionSeason.Columns["season_id"] != null)
-                            dgvCompetitionSeason.Columns["season_id"].Visible = false;
+                        FormatCompetitionSeasonGrid(dgvCompetitionSeason);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading competition seasons: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading competition seasons: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatCompetitionSeasonGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "competition_season_id", "ID" },
+        { "competition_name", "Competition" },
+        { "season_name", "Season" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "competition_id", "season_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("competition_season_id"))
+            {
+                dgv.Columns["competition_season_id"].Visible = true;
+                dgv.Columns["competition_season_id"].DisplayIndex = 0;
+                dgv.Columns["competition_season_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddCompetitionSeason_Click(object sender, EventArgs e)
@@ -578,7 +685,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@compId", compId);
                     command.Parameters.AddWithValue("@seasonId", seasonId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -634,7 +741,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@compId", compId);
                     command.Parameters.AddWithValue("@seasonId", seasonId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedCompetitionSeasonId);
 
                     connection.Open();
@@ -682,7 +789,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedCompetitionSeasonId);
 
                         connection.Open();
@@ -719,18 +826,43 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCompetitionSeason_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCompetitionSeason.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvCompetitionSeason.Rows[e.RowIndex];
 
-                _selectedCompetitionSeasonId = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    if (row.IsNewRow) return;
 
-                // Set ComboBoxes
-                if (row.Cells["competition_id"].Value != DBNull.Value)
-                    cmbCompetition.SelectedValue = Convert.ToInt32(row.Cells["competition_id"].Value);
+                    if (row.Cells["competition_season_id"].Value == null || row.Cells["competition_season_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["season_id"].Value != DBNull.Value)
-                    cmbSeason.SelectedValue = Convert.ToInt32(row.Cells["season_id"].Value);
+                    _selectedCompetitionSeasonId = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+
+                    if (row.Cells["competition_id"].Value != null && row.Cells["competition_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetition.SelectedValue = Convert.ToInt32(row.Cells["competition_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetition.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["season_id"].Value != null && row.Cells["season_id"].Value != DBNull.Value)
+                    {
+                        cmbSeason.SelectedValue = Convert.ToInt32(row.Cells["season_id"].Value);
+                    }
+                    else
+                    {
+                        cmbSeason.SelectedIndex = -1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -743,12 +875,12 @@ namespace Project_Final_Database_Fundamentals
 
             // Fetching ID and type_name
             string query = @"
-        SELECT 
-            type_id, 
-            type_name 
-        FROM competition_type
-        WHERE is_active = true
-        ORDER BY type_id DESC";
+    SELECT 
+        type_id, 
+        type_name 
+    FROM competition_type
+    WHERE is_active = true
+    ORDER BY type_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -764,20 +896,45 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCompetitionType.DataSource = dt;
 
-                        // Hide the ID column
-                        if (dgvCompetitionType.Columns["type_id"] != null)
-                            dgvCompetitionType.Columns["type_id"].Visible = false;
+                        FormatCompetitionTypeGrid(dgvCompetitionType);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading competition types: " + ex.Message);
+                MessageBox.Show("Error loading competition types: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatCompetitionTypeGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "type_id", "ID" },
+        { "type_name", "Type Name" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("type_id"))
+            {
+                dgv.Columns["type_id"].Visible = true;
+                dgv.Columns["type_id"].DisplayIndex = 0;
+                dgv.Columns["type_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddCompetitionType_Click(object sender, EventArgs e)
@@ -800,7 +957,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@typeName", typeName);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -856,7 +1013,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@typeName", typeName);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedCompetitionTypeId);
 
                     connection.Open();
@@ -908,7 +1065,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedCompetitionTypeId);
 
                         connection.Open();
@@ -938,12 +1095,26 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCompetitionType_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCompetitionType.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvCompetitionType.Rows[e.RowIndex];
 
-                _selectedCompetitionTypeId = Convert.ToInt32(row.Cells["type_id"].Value);
-                txtNameCompetitionType.Text = row.Cells["type_name"].Value.ToString();
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["type_id"].Value == null || row.Cells["type_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedCompetitionTypeId = Convert.ToInt32(row.Cells["type_id"].Value);
+                    txtNameCompetitionType.Text = row.Cells["type_name"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -998,24 +1169,25 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            st.stage_id, 
-            st.name, 
-            st.stage_order,
-            st.competition_season_id,
-            (c.name || ' - ' || s.name) AS comp_season_name
-        FROM competiton_stage st
-        INNER JOIN competition_season cs ON st.competition_season_id = cs.competition_season_id
-        INNER JOIN competition c ON cs.competition_id = c.competition_id
-        INNER JOIN season s ON cs.season_id = s.season_id
-        WHERE st.is_active = true
-        ORDER BY st.competition_season_id, st.stage_order";
+    SELECT 
+        st.stage_id, 
+        st.name, 
+        st.stage_order,
+        st.competition_season_id,
+        (c.name || ' - ' || s.name) AS comp_season_name
+    FROM competiton_stage st
+    INNER JOIN competition_season cs ON st.competition_season_id = cs.competition_season_id
+    INNER JOIN competition c ON cs.competition_id = c.competition_id
+    INNER JOIN season s ON cs.season_id = s.season_id
+    WHERE st.is_active = true
+    ORDER BY st.stage_id ASC"; // Changed to ASC by ID for consistency
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1024,18 +1196,52 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCompetitionStage.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvCompetitionStage.Columns["competition_stage_id"] != null)
-                            dgvCompetitionStage.Columns["competition_stage_id"].Visible = false;
-                        if (dgvCompetitionStage.Columns["competition_season_id"] != null)
-                            dgvCompetitionStage.Columns["competition_season_id"].Visible = false;
+                        FormatCompetitionStageGrid(dgvCompetitionStage);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading stages: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading stages: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatCompetitionStageGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "stage_id", "ID" },
+        { "name", "Stage Name" },
+        { "stage_order", "Order" },
+        { "comp_season_name", "Competition - Season" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("competition_season_id"))
+                dgv.Columns["competition_season_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("stage_id"))
+            {
+                dgv.Columns["stage_id"].Visible = true;
+                dgv.Columns["stage_id"].DisplayIndex = 0;
+                dgv.Columns["stage_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddCompetitionStage_Click(object sender, EventArgs e)
         {
             string name = txtNameCompetitionStage.Text.Trim();
@@ -1068,7 +1274,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@compSeasonId", compSeasonId);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@order", stageOrder);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1117,7 +1323,7 @@ namespace Project_Final_Database_Fundamentals
             updated_at = CURRENT_TIMESTAMP,
             updated_by = @updaterId
         WHERE 
-            competition_stage_id = @stageId;";
+            stage_id = @stageId;";
 
             try
             {
@@ -1127,7 +1333,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@compSeasonId", compSeasonId);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@order", stageOrder);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@stageId", _selectedCompetitionStageId);
 
                     connection.Open();
@@ -1162,14 +1368,14 @@ namespace Project_Final_Database_Fundamentals
             deleted_at = CURRENT_TIMESTAMP,
             deleted_by = @deleterId
         WHERE 
-            competition_stage_id = @stageId;";
+            stage_id = @stageId;";
 
                 try
                 {
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@stageId", _selectedCompetitionStageId);
 
                         connection.Open();
@@ -1201,23 +1407,45 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCompetitionStage_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCompetitionStage.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvCompetitionStage.Rows[e.RowIndex];
 
-                _selectedCompetitionStageId = Convert.ToInt32(row.Cells["competition_stage_id"].Value);
+                    if (row.IsNewRow) return;
 
-                txtNameCompetitionStage.Text = row.Cells["name"].Value.ToString();
+                    if (row.Cells["stage_id"].Value == null || row.Cells["stage_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                // Handle NumericUpDown
-                if (row.Cells["stage_order"].Value != DBNull.Value)
-                    nudStageOrder.Value = Convert.ToDecimal(row.Cells["stage_order"].Value);
-                else
-                    nudStageOrder.Value = 0;
+                    _selectedCompetitionStageId = Convert.ToInt32(row.Cells["stage_id"].Value);
 
-                // Handle ComboBox
-                if (row.Cells["competition_season_id"].Value != DBNull.Value)
-                    cmbCompStageCompSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    txtNameCompetitionStage.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["stage_order"].Value != null && row.Cells["stage_order"].Value != DBNull.Value)
+                    {
+                        nudStageOrder.Value = Convert.ToDecimal(row.Cells["stage_order"].Value);
+                    }
+                    else
+                    {
+                        nudStageOrder.Value = 0;
+                    }
+
+                    if (row.Cells["competition_season_id"].Value != null && row.Cells["competition_season_id"].Value != DBNull.Value)
+                    {
+                        cmbCompStageCompSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompStageCompSeason.SelectedIndex = -1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1229,14 +1457,14 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            season_id, 
-            name, 
-            start_date, 
-            end_date 
-        FROM season
-        WHERE is_active = true
-        ORDER BY season_id DESC";
+    SELECT 
+        season_id, 
+        name, 
+        start_date, 
+        end_date 
+    FROM season
+    WHERE is_active = true
+    ORDER BY season_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -1252,22 +1480,13 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvSeason.DataSource = dt;
 
-                        // Hide the ID column
-                        if (dgvSeason.Columns["season_id"] != null)
-                            dgvSeason.Columns["season_id"].Visible = false;
-
-                        // Optional: Format date columns for better readability
-                        if (dgvSeason.Columns["start_date"] != null)
-                            dgvSeason.Columns["start_date"].DefaultCellStyle.Format = "d"; // Short date format
-
-                        if (dgvSeason.Columns["end_date"] != null)
-                            dgvSeason.Columns["end_date"].DefaultCellStyle.Format = "d";
+                        FormatSeasonGrid(dgvSeason);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading seasons: " + ex.Message);
+                MessageBox.Show("Error loading seasons: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1275,6 +1494,41 @@ namespace Project_Final_Database_Fundamentals
             }
         }
 
+        private void FormatSeasonGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "season_id", "ID" },
+        { "name", "Season Name" },
+        { "start_date", "Start Date" },
+        { "end_date", "End Date" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("season_id"))
+            {
+                dgv.Columns["season_id"].Visible = true;
+                dgv.Columns["season_id"].DisplayIndex = 0;
+                dgv.Columns["season_id"].Width = 60;
+            }
+
+            // Date formatting (Short Date: dd/mm/yyyy or similar depending on culture)
+            if (dgv.Columns.Contains("start_date"))
+                dgv.Columns["start_date"].DefaultCellStyle.Format = "d";
+
+            if (dgv.Columns.Contains("end_date"))
+                dgv.Columns["end_date"].DefaultCellStyle.Format = "d";
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddSeason_Click(object sender, EventArgs e)
         {
             string name = txtNameSeason.Text.Trim();
@@ -1307,7 +1561,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@start", startDate);
                     command.Parameters.AddWithValue("@end", endDate);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1375,7 +1629,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@start", startDate);
                     command.Parameters.AddWithValue("@end", endDate);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@seasonId", _selectedSeasonId);
 
                     connection.Open();
@@ -1420,7 +1674,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@seasonId", _selectedSeasonId);
 
                         connection.Open();
@@ -1455,19 +1709,36 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvSeason_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvSeason.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvSeason.Rows[e.RowIndex];
 
-                _selectedSeasonId = Convert.ToInt32(row.Cells["season_id"].Value);
-                txtNameSeason.Text = row.Cells["name"].Value.ToString();
+                    if (row.IsNewRow) return;
 
-                // Handle Date conversion safely
-                if (row.Cells["start_date"].Value != DBNull.Value)
-                    dtpStartDate.Value = Convert.ToDateTime(row.Cells["start_date"].Value);
+                    if (row.Cells["season_id"].Value == null || row.Cells["season_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["end_date"].Value != DBNull.Value)
-                    dtpEndDate.Value = Convert.ToDateTime(row.Cells["end_date"].Value);
+                    _selectedSeasonId = Convert.ToInt32(row.Cells["season_id"].Value);
+                    txtNameSeason.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["start_date"].Value != null && row.Cells["start_date"].Value != DBNull.Value)
+                    {
+                        dtpStartDate.Value = Convert.ToDateTime(row.Cells["start_date"].Value);
+                    }
+
+                    if (row.Cells["end_date"].Value != null && row.Cells["end_date"].Value != DBNull.Value)
+                    {
+                        dtpEndDate.Value = Convert.ToDateTime(row.Cells["end_date"].Value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1519,24 +1790,25 @@ namespace Project_Final_Database_Fundamentals
         {
             this.Cursor = Cursors.WaitCursor;
 
-            // NOTE: 'group' must be in quotes
+            // NOTE: 'group' must be in quotes as it is a reserved SQL keyword
             string query = @"
-        SELECT 
-            g.group_id, 
-            g.group_name, 
-            g.qualification_slots,
-            g.stage_id,
-            st.name AS stage_name
-        FROM ""group"" g
-        INNER JOIN competiton_stage st ON g.stage_id = st.stage_id
-        WHERE g.is_active = true
-        ORDER BY g.group_id DESC";
+    SELECT 
+        g.group_id, 
+        g.group_name, 
+        g.qualification_slots,
+        g.stage_id,
+        st.name AS stage_name
+    FROM ""group"" g
+    INNER JOIN competiton_stage st ON g.stage_id = st.stage_id
+    WHERE g.is_active = true
+    ORDER BY g.group_id ASC"; // Changed to ASC for consistency
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1545,14 +1817,51 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvGroup.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvGroup.Columns["group_id"] != null) dgvGroup.Columns["group_id"].Visible = false;
-                        if (dgvGroup.Columns["stage_id"] != null) dgvGroup.Columns["stage_id"].Visible = false;
+                        FormatGroupGrid(dgvGroup);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading groups: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading groups: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatGroupGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "group_id", "ID" },
+        { "group_name", "Group Name" },
+        { "qualification_slots", "Qual. Slots" },
+        { "stage_name", "Stage" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("stage_id"))
+                dgv.Columns["stage_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("group_id"))
+            {
+                dgv.Columns["group_id"].Visible = true;
+                dgv.Columns["group_id"].DisplayIndex = 0;
+                dgv.Columns["group_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddGroup_Click(object sender, EventArgs e)
@@ -1595,7 +1904,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@stageId", stageId);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@slots", slots);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1656,7 +1965,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@stageId", stageId);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@slots", slots);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@groupId", _selectedGroupId);
 
                     connection.Open();
@@ -1698,7 +2007,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@groupId", _selectedGroupId);
 
                         connection.Open();
@@ -1730,24 +2039,46 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvGroup_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvGroup.Rows[e.RowIndex];
-
-                _selectedGroupId = Convert.ToInt32(row.Cells["group_id"].Value);
-
-                txtNameGroup.Text = row.Cells["name"].Value.ToString();
-
-                // Handle Stage Combo
-                if (row.Cells["competition_stage_id"].Value != DBNull.Value)
-                    cmbGroupStage.SelectedValue = Convert.ToInt32(row.Cells["competition_stage_id"].Value);
-
-                // Handle Slots Combo (Fixed Values)
-                if (row.Cells["qualification_slots"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    string slotsValue = row.Cells["qualification_slots"].Value.ToString();
-                    cmbQualificationSlots.SelectedItem = slotsValue; // Matches "2" or "3"
+                    DataGridViewRow row = dgvGroup.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["group_id"].Value == null || row.Cells["group_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedGroupId = Convert.ToInt32(row.Cells["group_id"].Value);
+
+                    txtNameGroup.Text = row.Cells["group_name"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["stage_id"].Value != null && row.Cells["stage_id"].Value != DBNull.Value)
+                    {
+                        cmbGroupStage.SelectedValue = Convert.ToInt32(row.Cells["stage_id"].Value);
+                    }
+                    else
+                    {
+                        cmbGroupStage.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["qualification_slots"].Value != null && row.Cells["qualification_slots"].Value != DBNull.Value)
+                    {
+                        string slotsValue = row.Cells["qualification_slots"].Value.ToString();
+                        cmbQualificationSlots.SelectedItem = slotsValue;
+                    }
+                    else
+                    {
+                        cmbQualificationSlots.SelectedIndex = -1;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1833,27 +2164,35 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            ls.league_standing_id, 
-            ls.competition_season_id,
-            (c.name || ' - ' || s.name) AS comp_season_name,
-            ls.team_id,
-            t.name AS team_name,
-            ls.rank, ls.played, ls.won, ls.drawn, ls.lost, 
-            ls.goals_for, ls.goals_against, ls.goal_difference, ls.points
-        FROM league_standing ls
-        INNER JOIN competition_season cs ON ls.competition_season_id = cs.competition_season_id
-        INNER JOIN competition c ON cs.competition_id = c.competition_id
-        INNER JOIN season s ON cs.season_id = s.season_id
-        INNER JOIN team t ON ls.team_id = t.team_id
-        WHERE ls.is_active = true
-        ORDER BY ls.competition_season_id, ls.rank";
+    SELECT 
+        ls.league_standing_id, 
+        ls.competition_season_id,
+        (c.name || ' - ' || s.name) AS comp_season_name,
+        ls.team_id,
+        t.name AS team_name,
+        ls.rank, 
+        ls.played, 
+        ls.won, 
+        ls.drawn, 
+        ls.lost, 
+        ls.goals_for, 
+        ls.goals_against, 
+        ls.goal_difference, 
+        ls.points
+    FROM league_standing ls
+    INNER JOIN competition_season cs ON ls.competition_season_id = cs.competition_season_id
+    INNER JOIN competition c ON cs.competition_id = c.competition_id
+    INNER JOIN season s ON cs.season_id = s.season_id
+    INNER JOIN team t ON ls.team_id = t.team_id
+    WHERE ls.is_active = true
+    ORDER BY ls.competition_season_id, ls.rank"; // Keep logical sorting for standings
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -1862,20 +2201,71 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvLeagueStanding.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "league_standing_id", "competition_season_id", "team_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvLeagueStanding.Columns[col] != null)
-                                dgvLeagueStanding.Columns[col].Visible = false;
-                        }
+                        FormatLeagueStandingGrid(dgvLeagueStanding);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading standings: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading standings: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatLeagueStandingGrid(DataGridView dgv)
+        {
+            // Standard Soccer Abbreviations for cleaner tables
+            var headerMap = new Dictionary<string, string>
+    {
+        { "league_standing_id", "ID" },
+        { "comp_season_name", "Competition - Season" },
+        { "team_name", "Team" },
+        { "rank", "Pos" },   // Position
+        { "played", "P" },   // Played
+        { "won", "W" },      // Won
+        { "drawn", "D" },    // Drawn
+        { "lost", "L" },     // Lost
+        { "goals_for", "GF" },
+        { "goals_against", "GA" },
+        { "goal_difference", "GD" },
+        { "points", "Pts" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "competition_season_id", "team_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("league_standing_id"))
+            {
+                dgv.Columns["league_standing_id"].Visible = true;
+                dgv.Columns["league_standing_id"].DisplayIndex = 0;
+                dgv.Columns["league_standing_id"].Width = 50;
+            }
+
+            // Ensure Rank/Pos is prominent after ID
+            if (dgv.Columns.Contains("rank"))
+            {
+                dgv.Columns["rank"].Width = 40;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddLeagueStanding_Click(object sender, EventArgs e)
         {
             // 1. Validate Combos
@@ -1922,7 +2312,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@ga", ga);
                     command.Parameters.AddWithValue("@gd", gd);
                     command.Parameters.AddWithValue("@points", points);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1995,7 +2385,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@ga", (int)numLeagueStanding_GA.Value);
                     command.Parameters.AddWithValue("@gd", (int)numLeagueStanding_GD.Value);
                     command.Parameters.AddWithValue("@points", (int)numLeagueStanding_Points.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedLeagueStandingId);
 
                     connection.Open();
@@ -2037,7 +2427,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedLeagueStandingId);
 
                         connection.Open();
@@ -2079,29 +2469,88 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvLeagueStanding_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvLeagueStanding.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvLeagueStanding.Rows[e.RowIndex];
 
-                _selectedLeagueStandingId = Convert.ToInt32(row.Cells["league_standing_id"].Value);
+                    if (row.IsNewRow) return;
 
-                // Map Combos
-                if (row.Cells["competition_season_id"].Value != DBNull.Value)
-                    cmbLeagueStanding_CompSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    if (row.Cells["league_standing_id"].Value == null || row.Cells["league_standing_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["team_id"].Value != DBNull.Value)
-                    cmbLeagueStanding_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    _selectedLeagueStandingId = Convert.ToInt32(row.Cells["league_standing_id"].Value);
 
-                // Map Numerics safely
-                numLeagueStanding_Rank.Value = Convert.ToDecimal(row.Cells["rank"].Value);
-                numLeagueStanding_Played.Value = Convert.ToDecimal(row.Cells["played"].Value);
-                numLeagueStanding_Won.Value = Convert.ToDecimal(row.Cells["won"].Value);
-                numLeagueStanding_Drawn.Value = Convert.ToDecimal(row.Cells["drawn"].Value);
-                numLeagueStanding_Lost.Value = Convert.ToDecimal(row.Cells["lost"].Value);
-                numLeagueStanding_GF.Value = Convert.ToDecimal(row.Cells["goals_for"].Value);
-                numLeagueStanding_GA.Value = Convert.ToDecimal(row.Cells["goals_against"].Value);
-                numLeagueStanding_GD.Value = Convert.ToDecimal(row.Cells["goal_difference"].Value);
-                numLeagueStanding_Points.Value = Convert.ToDecimal(row.Cells["points"].Value);
+                    if (row.Cells["competition_season_id"].Value != null && row.Cells["competition_season_id"].Value != DBNull.Value)
+                    {
+                        cmbLeagueStanding_CompSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    }
+                    else
+                    {
+                        cmbLeagueStanding_CompSeason.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["team_id"].Value != null && row.Cells["team_id"].Value != DBNull.Value)
+                    {
+                        cmbLeagueStanding_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    }
+                    else
+                    {
+                        cmbLeagueStanding_Team.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["rank"].Value != null && row.Cells["rank"].Value != DBNull.Value)
+                        numLeagueStanding_Rank.Value = Convert.ToDecimal(row.Cells["rank"].Value);
+                    else
+                        numLeagueStanding_Rank.Value = 0;
+
+                    if (row.Cells["played"].Value != null && row.Cells["played"].Value != DBNull.Value)
+                        numLeagueStanding_Played.Value = Convert.ToDecimal(row.Cells["played"].Value);
+                    else
+                        numLeagueStanding_Played.Value = 0;
+
+                    if (row.Cells["won"].Value != null && row.Cells["won"].Value != DBNull.Value)
+                        numLeagueStanding_Won.Value = Convert.ToDecimal(row.Cells["won"].Value);
+                    else
+                        numLeagueStanding_Won.Value = 0;
+
+                    if (row.Cells["drawn"].Value != null && row.Cells["drawn"].Value != DBNull.Value)
+                        numLeagueStanding_Drawn.Value = Convert.ToDecimal(row.Cells["drawn"].Value);
+                    else
+                        numLeagueStanding_Drawn.Value = 0;
+
+                    if (row.Cells["lost"].Value != null && row.Cells["lost"].Value != DBNull.Value)
+                        numLeagueStanding_Lost.Value = Convert.ToDecimal(row.Cells["lost"].Value);
+                    else
+                        numLeagueStanding_Lost.Value = 0;
+
+                    if (row.Cells["goals_for"].Value != null && row.Cells["goals_for"].Value != DBNull.Value)
+                        numLeagueStanding_GF.Value = Convert.ToDecimal(row.Cells["goals_for"].Value);
+                    else
+                        numLeagueStanding_GF.Value = 0;
+
+                    if (row.Cells["goals_against"].Value != null && row.Cells["goals_against"].Value != DBNull.Value)
+                        numLeagueStanding_GA.Value = Convert.ToDecimal(row.Cells["goals_against"].Value);
+                    else
+                        numLeagueStanding_GA.Value = 0;
+
+                    if (row.Cells["goal_difference"].Value != null && row.Cells["goal_difference"].Value != DBNull.Value)
+                        numLeagueStanding_GD.Value = Convert.ToDecimal(row.Cells["goal_difference"].Value);
+                    else
+                        numLeagueStanding_GD.Value = 0;
+
+                    if (row.Cells["points"].Value != null && row.Cells["points"].Value != DBNull.Value)
+                        numLeagueStanding_Points.Value = Convert.ToDecimal(row.Cells["points"].Value);
+                    else
+                        numLeagueStanding_Points.Value = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2180,25 +2629,33 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            gs.group_standing_id, 
-            gs.group_id,
-            g.group_name AS group_name,
-            gs.team_id,
-            t.name AS team_name,
-            gs.rank, gs.played, gs.won, gs.drawn, gs.lost, 
-            gs.goals_for, gs.goals_against, gs.goal_difference, gs.points
-        FROM group_standing gs
-        INNER JOIN ""group"" g ON gs.group_id = g.group_id
-        INNER JOIN team t ON gs.team_id = t.team_id
-        WHERE gs.is_active = true
-        ORDER BY g.group_name, gs.rank";
+    SELECT 
+        gs.group_standing_id, 
+        gs.group_id,
+        g.group_name AS group_name,
+        gs.team_id,
+        t.name AS team_name,
+        gs.rank, 
+        gs.played, 
+        gs.won, 
+        gs.drawn, 
+        gs.lost, 
+        gs.goals_for, 
+        gs.goals_against, 
+        gs.goal_difference, 
+        gs.points
+    FROM group_standing gs
+    INNER JOIN ""group"" g ON gs.group_id = g.group_id
+    INNER JOIN team t ON gs.team_id = t.team_id
+    WHERE gs.is_active = true
+    ORDER BY g.group_name, gs.rank"; // Keep logical sorting for groups
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -2207,18 +2664,70 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvGroupStanding.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "group_standing_id", "group_id", "team_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvGroupStanding.Columns[col] != null)
-                                dgvGroupStanding.Columns[col].Visible = false;
-                        }
+                        FormatGroupStandingGrid(dgvGroupStanding);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading group standings: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading group standings: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
+        }
+
+        private void FormatGroupStandingGrid(DataGridView dgv)
+        {
+            // Standard Soccer Abbreviations
+            var headerMap = new Dictionary<string, string>
+    {
+        { "group_standing_id", "ID" },
+        { "group_name", "Group" },
+        { "team_name", "Team" },
+        { "rank", "Pos" },   // Position
+        { "played", "P" },   // Played
+        { "won", "W" },      // Won
+        { "drawn", "D" },    // Drawn
+        { "lost", "L" },     // Lost
+        { "goals_for", "GF" },
+        { "goals_against", "GA" },
+        { "goal_difference", "GD" },
+        { "points", "Pts" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "group_id", "team_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("group_standing_id"))
+            {
+                dgv.Columns["group_standing_id"].Visible = true;
+                dgv.Columns["group_standing_id"].DisplayIndex = 0;
+                dgv.Columns["group_standing_id"].Width = 50;
+            }
+
+            // Make the Group Name prominent so user knows which table they are looking at
+            if (dgv.Columns.Contains("group_name"))
+            {
+                dgv.Columns["group_name"].DisplayIndex = 1;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddGroupStanding_Click(object sender, EventArgs e)
@@ -2267,7 +2776,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@ga", ga);
                     command.Parameters.AddWithValue("@gd", gd);
                     command.Parameters.AddWithValue("@points", points);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2341,7 +2850,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@ga", (int)numGroupStanding_GA.Value);
                     command.Parameters.AddWithValue("@gd", (int)numGroupStanding_GD.Value);
                     command.Parameters.AddWithValue("@points", (int)numGroupStanding_Points.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedGroupStandingId);
 
                     connection.Open();
@@ -2383,7 +2892,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedGroupStandingId);
 
                         connection.Open();
@@ -2425,29 +2934,88 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvGroupStanding_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvGroupStanding.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvGroupStanding.Rows[e.RowIndex];
 
-                _selectedGroupStandingId = Convert.ToInt32(row.Cells["group_standing_id"].Value);
+                    if (row.IsNewRow) return;
 
-                // Map Combos
-                if (row.Cells["group_id"].Value != DBNull.Value)
-                    cmbGroupStanding_Group.SelectedValue = Convert.ToInt32(row.Cells["group_id"].Value);
+                    if (row.Cells["group_standing_id"].Value == null || row.Cells["group_standing_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["team_id"].Value != DBNull.Value)
-                    cmbGroupStanding_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    _selectedGroupStandingId = Convert.ToInt32(row.Cells["group_standing_id"].Value);
 
-                // Map Numerics
-                numGroupStanding_Rank.Value = Convert.ToDecimal(row.Cells["rank"].Value);
-                numGroupStanding_Played.Value = Convert.ToDecimal(row.Cells["played"].Value);
-                numGroupStanding_Won.Value = Convert.ToDecimal(row.Cells["won"].Value);
-                numGroupStanding_Drawn.Value = Convert.ToDecimal(row.Cells["drawn"].Value);
-                numGroupStanding_Lost.Value = Convert.ToDecimal(row.Cells["lost"].Value);
-                numGroupStanding_GF.Value = Convert.ToDecimal(row.Cells["goals_for"].Value);
-                numGroupStanding_GA.Value = Convert.ToDecimal(row.Cells["goals_against"].Value);
-                numGroupStanding_GD.Value = Convert.ToDecimal(row.Cells["goal_difference"].Value);
-                numGroupStanding_Points.Value = Convert.ToDecimal(row.Cells["points"].Value);
+                    if (row.Cells["group_id"].Value != null && row.Cells["group_id"].Value != DBNull.Value)
+                    {
+                        cmbGroupStanding_Group.SelectedValue = Convert.ToInt32(row.Cells["group_id"].Value);
+                    }
+                    else
+                    {
+                        cmbGroupStanding_Group.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["team_id"].Value != null && row.Cells["team_id"].Value != DBNull.Value)
+                    {
+                        cmbGroupStanding_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    }
+                    else
+                    {
+                        cmbGroupStanding_Team.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["rank"].Value != null && row.Cells["rank"].Value != DBNull.Value)
+                        numGroupStanding_Rank.Value = Convert.ToDecimal(row.Cells["rank"].Value);
+                    else
+                        numGroupStanding_Rank.Value = 0;
+
+                    if (row.Cells["played"].Value != null && row.Cells["played"].Value != DBNull.Value)
+                        numGroupStanding_Played.Value = Convert.ToDecimal(row.Cells["played"].Value);
+                    else
+                        numGroupStanding_Played.Value = 0;
+
+                    if (row.Cells["won"].Value != null && row.Cells["won"].Value != DBNull.Value)
+                        numGroupStanding_Won.Value = Convert.ToDecimal(row.Cells["won"].Value);
+                    else
+                        numGroupStanding_Won.Value = 0;
+
+                    if (row.Cells["drawn"].Value != null && row.Cells["drawn"].Value != DBNull.Value)
+                        numGroupStanding_Drawn.Value = Convert.ToDecimal(row.Cells["drawn"].Value);
+                    else
+                        numGroupStanding_Drawn.Value = 0;
+
+                    if (row.Cells["lost"].Value != null && row.Cells["lost"].Value != DBNull.Value)
+                        numGroupStanding_Lost.Value = Convert.ToDecimal(row.Cells["lost"].Value);
+                    else
+                        numGroupStanding_Lost.Value = 0;
+
+                    if (row.Cells["goals_for"].Value != null && row.Cells["goals_for"].Value != DBNull.Value)
+                        numGroupStanding_GF.Value = Convert.ToDecimal(row.Cells["goals_for"].Value);
+                    else
+                        numGroupStanding_GF.Value = 0;
+
+                    if (row.Cells["goals_against"].Value != null && row.Cells["goals_against"].Value != DBNull.Value)
+                        numGroupStanding_GA.Value = Convert.ToDecimal(row.Cells["goals_against"].Value);
+                    else
+                        numGroupStanding_GA.Value = 0;
+
+                    if (row.Cells["goal_difference"].Value != null && row.Cells["goal_difference"].Value != DBNull.Value)
+                        numGroupStanding_GD.Value = Convert.ToDecimal(row.Cells["goal_difference"].Value);
+                    else
+                        numGroupStanding_GD.Value = 0;
+
+                    if (row.Cells["points"].Value != null && row.Cells["points"].Value != DBNull.Value)
+                        numGroupStanding_Points.Value = Convert.ToDecimal(row.Cells["points"].Value);
+                    else
+                        numGroupStanding_Points.Value = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2530,27 +3098,28 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            cst.competition_season_team_id, 
-            cst.competition_season_id,
-            (c.name || ' - ' || s.name) AS comp_season_name,
-            cst.team_id,
-            t.name AS team_name,
-            cst.final_position, 
-            cst.overall_status
-        FROM competition_season_team cst
-        INNER JOIN competition_season cs ON cst.competition_season_id = cs.competition_season_id
-        INNER JOIN competition c ON cs.competition_id = c.competition_id
-        INNER JOIN season s ON cs.season_id = s.season_id
-        INNER JOIN team t ON cst.team_id = t.team_id
-        WHERE cst.is_active = true
-        ORDER BY comp_season_name, cst.final_position";
+    SELECT 
+        cst.competition_season_team_id, 
+        cst.competition_season_id,
+        (c.name || ' - ' || s.name) AS comp_season_name,
+        cst.team_id,
+        t.name AS team_name,
+        cst.final_position, 
+        cst.overall_status
+    FROM competition_season_team cst
+    INNER JOIN competition_season cs ON cst.competition_season_id = cs.competition_season_id
+    INNER JOIN competition c ON cs.competition_id = c.competition_id
+    INNER JOIN season s ON cs.season_id = s.season_id
+    INNER JOIN team t ON cst.team_id = t.team_id
+    WHERE cst.is_active = true
+    ORDER BY comp_season_name, cst.final_position"; // Keep logical sorting
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
                     await connection.OpenAsync();
+
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -2559,20 +3128,57 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvCompetitionSeasonTeams.DataSource = dt;
 
-                        // Hide internal IDs
-                        string[] hiddenCols = { "competition_season_team_id", "competition_season_id", "team_id" };
-                        foreach (var col in hiddenCols)
-                        {
-                            if (dgvCompetitionSeasonTeams.Columns[col] != null)
-                                dgvCompetitionSeasonTeams.Columns[col].Visible = false;
-                        }
+                        FormatCompSeasonTeamGrid(dgvCompetitionSeasonTeams);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading data: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading data: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
+        private void FormatCompSeasonTeamGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "competition_season_team_id", "ID" },
+        { "comp_season_name", "Competition - Season" },
+        { "team_name", "Team" },
+        { "final_position", "Final Pos" },
+        { "overall_status", "Status" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            string[] hiddenCols = { "competition_season_id", "team_id" };
+            foreach (var colName in hiddenCols)
+            {
+                if (dgv.Columns.Contains(colName))
+                    dgv.Columns[colName].Visible = false;
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("competition_season_team_id"))
+            {
+                dgv.Columns["competition_season_team_id"].Visible = true;
+                dgv.Columns["competition_season_team_id"].DisplayIndex = 0;
+                dgv.Columns["competition_season_team_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+        }
         private async void btnAddCompetitionSeasonTeam_Click(object sender, EventArgs e)
         {
             // 1. Validate Combos
@@ -2605,7 +3211,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", teamId);
                     command.Parameters.AddWithValue("@pos", finalPosition);
                     command.Parameters.AddWithValue("@status", status); // Optional: DBNull.Value if empty allowed
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2667,7 +3273,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@teamId", teamId);
                     command.Parameters.AddWithValue("@pos", finalPosition);
                     command.Parameters.AddWithValue("@status", status);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@id", _selectedCompSeasonTeamId);
 
                     connection.Open();
@@ -2709,7 +3315,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@id", _selectedCompSeasonTeamId);
 
                         connection.Open();
@@ -2744,27 +3350,54 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCompetitionSeasonTeams_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCompetitionSeasonTeams.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvCompetitionSeasonTeams.Rows[e.RowIndex];
 
-                _selectedCompSeasonTeamId = Convert.ToInt32(row.Cells["competition_season_team_id"].Value);
+                    if (row.IsNewRow) return;
 
-                // Map Combos
-                if (row.Cells["competition_season_id"].Value != DBNull.Value)
-                    cmbCompetitonSeasonTeam_CompetitonSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    if (row.Cells["competition_season_team_id"].Value == null || row.Cells["competition_season_team_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
 
-                if (row.Cells["team_id"].Value != DBNull.Value)
-                    cmbCompetitionSeasonTeam_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    _selectedCompSeasonTeamId = Convert.ToInt32(row.Cells["competition_season_team_id"].Value);
 
-                // Map Numeric
-                if (row.Cells["final_position"].Value != DBNull.Value)
-                    numFinalPosition.Value = Convert.ToDecimal(row.Cells["final_position"].Value);
-                else
-                    numFinalPosition.Value = 0;
+                    if (row.Cells["competition_season_id"].Value != null && row.Cells["competition_season_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetitonSeasonTeam_CompetitonSeason.SelectedValue = Convert.ToInt32(row.Cells["competition_season_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetitonSeasonTeam_CompetitonSeason.SelectedIndex = -1;
+                    }
 
-                // Map TextBox
-                txtOverallStatus.Text = row.Cells["overall_status"].Value?.ToString() ?? "";
+                    if (row.Cells["team_id"].Value != null && row.Cells["team_id"].Value != DBNull.Value)
+                    {
+                        cmbCompetitionSeasonTeam_Team.SelectedValue = Convert.ToInt32(row.Cells["team_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCompetitionSeasonTeam_Team.SelectedIndex = -1;
+                    }
+
+                    if (row.Cells["final_position"].Value != null && row.Cells["final_position"].Value != DBNull.Value)
+                    {
+                        numFinalPosition.Value = Convert.ToDecimal(row.Cells["final_position"].Value);
+                    }
+                    else
+                    {
+                        numFinalPosition.Value = 0;
+                    }
+
+                    txtOverallStatus.Text = row.Cells["overall_status"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

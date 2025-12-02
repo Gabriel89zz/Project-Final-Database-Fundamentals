@@ -369,6 +369,7 @@
             dgvCompetition.DefaultCellStyle = dataGridViewCellStyle1;
             dgvCompetition.Location = new Point(0, 0);
             dgvCompetition.Name = "dgvCompetition";
+            dgvCompetition.ReadOnly = true;
             dgvCompetition.Size = new Size(729, 247);
             dgvCompetition.TabIndex = 0;
             dgvCompetition.CellClick += dgvCompetition_CellClick;
@@ -408,6 +409,7 @@
             // 
             // cmbCompetitionType
             // 
+            cmbCompetitionType.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetitionType.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCompetitionType.FormattingEnabled = true;
             cmbCompetitionType.Location = new Point(16, 121);
@@ -427,6 +429,9 @@
             // 
             // cmbCompetitionConfederation
             // 
+            cmbCompetitionConfederation.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompetitionConfederation.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompetitionConfederation.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetitionConfederation.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCompetitionConfederation.FormattingEnabled = true;
             cmbCompetitionConfederation.Location = new Point(405, 47);
@@ -446,6 +451,9 @@
             // 
             // cmbCompetitionCountry
             // 
+            cmbCompetitionCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompetitionCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompetitionCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetitionCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCompetitionCountry.FormattingEnabled = true;
             cmbCompetitionCountry.Location = new Point(202, 47);
@@ -579,6 +587,7 @@
             dgvCompetitionSeason.DefaultCellStyle = dataGridViewCellStyle2;
             dgvCompetitionSeason.Location = new Point(0, 0);
             dgvCompetitionSeason.Name = "dgvCompetitionSeason";
+            dgvCompetitionSeason.ReadOnly = true;
             dgvCompetitionSeason.Size = new Size(729, 247);
             dgvCompetitionSeason.TabIndex = 0;
             dgvCompetitionSeason.CellClick += dgvCompetitionSeason_CellClick;
@@ -614,6 +623,9 @@
             // 
             // cmbSeason
             // 
+            cmbSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSeason.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbSeason.FormattingEnabled = true;
             cmbSeason.Location = new Point(193, 47);
@@ -633,6 +645,9 @@
             // 
             // cmbCompetition
             // 
+            cmbCompetition.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompetition.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompetition.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetition.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCompetition.FormattingEnabled = true;
             cmbCompetition.Location = new Point(17, 47);
@@ -748,6 +763,7 @@
             dgvCompetitionType.DefaultCellStyle = dataGridViewCellStyle3;
             dgvCompetitionType.Location = new Point(0, 0);
             dgvCompetitionType.Name = "dgvCompetitionType";
+            dgvCompetitionType.ReadOnly = true;
             dgvCompetitionType.Size = new Size(729, 247);
             dgvCompetitionType.TabIndex = 0;
             dgvCompetitionType.CellClick += dgvCompetitionType_CellClick;
@@ -894,6 +910,7 @@
             dgvCompetitionStage.DefaultCellStyle = dataGridViewCellStyle4;
             dgvCompetitionStage.Location = new Point(0, 0);
             dgvCompetitionStage.Name = "dgvCompetitionStage";
+            dgvCompetitionStage.ReadOnly = true;
             dgvCompetitionStage.Size = new Size(729, 247);
             dgvCompetitionStage.TabIndex = 0;
             dgvCompetitionStage.CellClick += dgvCompetitionStage_CellClick;
@@ -958,6 +975,9 @@
             // 
             // cmbCompStageCompSeason
             // 
+            cmbCompStageCompSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompStageCompSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompStageCompSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompStageCompSeason.FormattingEnabled = true;
             cmbCompStageCompSeason.Location = new Point(25, 46);
             cmbCompStageCompSeason.Name = "cmbCompStageCompSeason";
@@ -1079,6 +1099,7 @@
             dgvSeason.DefaultCellStyle = dataGridViewCellStyle5;
             dgvSeason.Location = new Point(0, 0);
             dgvSeason.Name = "dgvSeason";
+            dgvSeason.ReadOnly = true;
             dgvSeason.Size = new Size(729, 247);
             dgvSeason.TabIndex = 0;
             dgvSeason.CellClick += dgvSeason_CellClick;
@@ -1311,6 +1332,9 @@
             // 
             // cmbQualificationSlots
             // 
+            cmbQualificationSlots.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbQualificationSlots.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbQualificationSlots.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbQualificationSlots.FormattingEnabled = true;
             cmbQualificationSlots.Items.AddRange(new object[] { "2", "3" });
             cmbQualificationSlots.Location = new Point(381, 44);
@@ -1330,6 +1354,9 @@
             // 
             // cmbGroupStage
             // 
+            cmbGroupStage.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbGroupStage.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbGroupStage.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbGroupStage.FormattingEnabled = true;
             cmbGroupStage.Location = new Point(20, 44);
             cmbGroupStage.Name = "cmbGroupStage";
@@ -1528,6 +1555,8 @@
             // numLeagueStanding_GD
             // 
             numLeagueStanding_GD.Location = new Point(155, 48);
+            numLeagueStanding_GD.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
+            numLeagueStanding_GD.Minimum = new decimal(new int[] { 200, 0, 0, int.MinValue });
             numLeagueStanding_GD.Name = "numLeagueStanding_GD";
             numLeagueStanding_GD.Size = new Size(59, 26);
             numLeagueStanding_GD.TabIndex = 23;
@@ -1545,6 +1574,7 @@
             // numLeagueStanding_GA
             // 
             numLeagueStanding_GA.Location = new Point(81, 48);
+            numLeagueStanding_GA.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             numLeagueStanding_GA.Name = "numLeagueStanding_GA";
             numLeagueStanding_GA.Size = new Size(59, 26);
             numLeagueStanding_GA.TabIndex = 21;
@@ -1552,6 +1582,7 @@
             // numLeagueStanding_GF
             // 
             numLeagueStanding_GF.Location = new Point(7, 48);
+            numLeagueStanding_GF.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             numLeagueStanding_GF.Name = "numLeagueStanding_GF";
             numLeagueStanding_GF.Size = new Size(59, 26);
             numLeagueStanding_GF.TabIndex = 19;
@@ -1596,6 +1627,7 @@
             // numLeagueStanding_Lost
             // 
             numLeagueStanding_Lost.Location = new Point(220, 48);
+            numLeagueStanding_Lost.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numLeagueStanding_Lost.Name = "numLeagueStanding_Lost";
             numLeagueStanding_Lost.Size = new Size(59, 26);
             numLeagueStanding_Lost.TabIndex = 17;
@@ -1613,6 +1645,7 @@
             // numLeagueStanding_Drawn
             // 
             numLeagueStanding_Drawn.Location = new Point(149, 48);
+            numLeagueStanding_Drawn.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numLeagueStanding_Drawn.Name = "numLeagueStanding_Drawn";
             numLeagueStanding_Drawn.Size = new Size(59, 26);
             numLeagueStanding_Drawn.TabIndex = 15;
@@ -1630,6 +1663,7 @@
             // numLeagueStanding_Won
             // 
             numLeagueStanding_Won.Location = new Point(78, 48);
+            numLeagueStanding_Won.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numLeagueStanding_Won.Name = "numLeagueStanding_Won";
             numLeagueStanding_Won.Size = new Size(59, 26);
             numLeagueStanding_Won.TabIndex = 13;
@@ -1680,6 +1714,9 @@
             // 
             // cmbLeagueStanding_Team
             // 
+            cmbLeagueStanding_Team.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbLeagueStanding_Team.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbLeagueStanding_Team.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbLeagueStanding_Team.FormattingEnabled = true;
             cmbLeagueStanding_Team.Location = new Point(180, 44);
             cmbLeagueStanding_Team.Name = "cmbLeagueStanding_Team";
@@ -1698,6 +1735,9 @@
             // 
             // cmbLeagueStanding_CompSeason
             // 
+            cmbLeagueStanding_CompSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbLeagueStanding_CompSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbLeagueStanding_CompSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbLeagueStanding_CompSeason.FormattingEnabled = true;
             cmbLeagueStanding_CompSeason.Location = new Point(20, 44);
             cmbLeagueStanding_CompSeason.Name = "cmbLeagueStanding_CompSeason";
@@ -1878,6 +1918,8 @@
             // numGroupStanding_GD
             // 
             numGroupStanding_GD.Location = new Point(155, 48);
+            numGroupStanding_GD.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
+            numGroupStanding_GD.Minimum = new decimal(new int[] { 200, 0, 0, int.MinValue });
             numGroupStanding_GD.Name = "numGroupStanding_GD";
             numGroupStanding_GD.Size = new Size(59, 26);
             numGroupStanding_GD.TabIndex = 23;
@@ -1895,6 +1937,7 @@
             // numGroupStanding_GA
             // 
             numGroupStanding_GA.Location = new Point(81, 48);
+            numGroupStanding_GA.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             numGroupStanding_GA.Name = "numGroupStanding_GA";
             numGroupStanding_GA.Size = new Size(59, 26);
             numGroupStanding_GA.TabIndex = 21;
@@ -1902,6 +1945,7 @@
             // numGroupStanding_GF
             // 
             numGroupStanding_GF.Location = new Point(7, 48);
+            numGroupStanding_GF.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             numGroupStanding_GF.Name = "numGroupStanding_GF";
             numGroupStanding_GF.Size = new Size(59, 26);
             numGroupStanding_GF.TabIndex = 19;
@@ -1946,6 +1990,7 @@
             // numGroupStanding_Lost
             // 
             numGroupStanding_Lost.Location = new Point(220, 48);
+            numGroupStanding_Lost.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numGroupStanding_Lost.Name = "numGroupStanding_Lost";
             numGroupStanding_Lost.Size = new Size(59, 26);
             numGroupStanding_Lost.TabIndex = 17;
@@ -1963,6 +2008,7 @@
             // numGroupStanding_Drawn
             // 
             numGroupStanding_Drawn.Location = new Point(149, 48);
+            numGroupStanding_Drawn.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numGroupStanding_Drawn.Name = "numGroupStanding_Drawn";
             numGroupStanding_Drawn.Size = new Size(59, 26);
             numGroupStanding_Drawn.TabIndex = 15;
@@ -1980,6 +2026,7 @@
             // numGroupStanding_Won
             // 
             numGroupStanding_Won.Location = new Point(78, 48);
+            numGroupStanding_Won.Minimum = new decimal(new int[] { 100, 0, 0, int.MinValue });
             numGroupStanding_Won.Name = "numGroupStanding_Won";
             numGroupStanding_Won.Size = new Size(59, 26);
             numGroupStanding_Won.TabIndex = 13;
@@ -2030,6 +2077,9 @@
             // 
             // cmbGroupStanding_Team
             // 
+            cmbGroupStanding_Team.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbGroupStanding_Team.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbGroupStanding_Team.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbGroupStanding_Team.FormattingEnabled = true;
             cmbGroupStanding_Team.Location = new Point(163, 44);
             cmbGroupStanding_Team.Name = "cmbGroupStanding_Team";
@@ -2048,6 +2098,9 @@
             // 
             // cmbGroupStanding_Group
             // 
+            cmbGroupStanding_Group.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbGroupStanding_Group.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbGroupStanding_Group.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbGroupStanding_Group.FormattingEnabled = true;
             cmbGroupStanding_Group.Location = new Point(20, 44);
             cmbGroupStanding_Group.Name = "cmbGroupStanding_Group";
@@ -2201,6 +2254,9 @@
             // 
             // cmbCompetitonSeasonTeam_CompetitonSeason
             // 
+            cmbCompetitonSeasonTeam_CompetitonSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompetitonSeasonTeam_CompetitonSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompetitonSeasonTeam_CompetitonSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetitonSeasonTeam_CompetitonSeason.FormattingEnabled = true;
             cmbCompetitonSeasonTeam_CompetitonSeason.Location = new Point(20, 43);
             cmbCompetitonSeasonTeam_CompetitonSeason.Name = "cmbCompetitonSeasonTeam_CompetitonSeason";
@@ -2227,9 +2283,11 @@
             // numFinalPosition
             // 
             numFinalPosition.Location = new Point(443, 44);
+            numFinalPosition.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numFinalPosition.Name = "numFinalPosition";
             numFinalPosition.Size = new Size(120, 26);
             numFinalPosition.TabIndex = 4;
+            numFinalPosition.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label49
             // 
@@ -2243,6 +2301,9 @@
             // 
             // cmbCompetitionSeasonTeam_Team
             // 
+            cmbCompetitionSeasonTeam_Team.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCompetitionSeasonTeam_Team.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCompetitionSeasonTeam_Team.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCompetitionSeasonTeam_Team.FormattingEnabled = true;
             cmbCompetitionSeasonTeam_Team.Location = new Point(230, 43);
             cmbCompetitionSeasonTeam_Team.Name = "cmbCompetitionSeasonTeam_Team";
@@ -2275,12 +2336,12 @@
             btnUpdateCompetitionSeasonTeam.UseVisualStyleBackColor = false;
             btnUpdateCompetitionSeasonTeam.Click += btnUpdateCompetitionSeasonTeam_Click;
             // 
-            // uc_CompetitionsAndSeasons
+            // ucCompetitionsAndSeasons
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(tabControlCompetitionsAndSeasons);
-            Name = "uc_CompetitionsAndSeasons";
+            Name = "ucCompetitionsAndSeasons";
             Size = new Size(773, 546);
             tabControlCompetitionsAndSeasons.ResumeLayout(false);
             tabCompetitions.ResumeLayout(false);

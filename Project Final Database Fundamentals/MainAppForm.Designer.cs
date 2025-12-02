@@ -72,7 +72,7 @@
             btnPlayerPerfomance.FlatAppearance.BorderSize = 0;
             btnPlayerPerfomance.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnPlayerPerfomance.FlatStyle = FlatStyle.Flat;
-            btnPlayerPerfomance.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnPlayerPerfomance.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnPlayerPerfomance.ForeColor = Color.WhiteSmoke;
             btnPlayerPerfomance.Location = new Point(0, 375);
             btnPlayerPerfomance.Name = "btnPlayerPerfomance";
@@ -87,7 +87,7 @@
             btnLineupsAndFormations.FlatAppearance.BorderSize = 0;
             btnLineupsAndFormations.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnLineupsAndFormations.FlatStyle = FlatStyle.Flat;
-            btnLineupsAndFormations.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnLineupsAndFormations.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnLineupsAndFormations.ForeColor = Color.WhiteSmoke;
             btnLineupsAndFormations.Location = new Point(0, 289);
             btnLineupsAndFormations.Name = "btnLineupsAndFormations";
@@ -102,7 +102,7 @@
             btnTeamsAndClubs.FlatAppearance.BorderSize = 0;
             btnTeamsAndClubs.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnTeamsAndClubs.FlatStyle = FlatStyle.Flat;
-            btnTeamsAndClubs.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnTeamsAndClubs.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnTeamsAndClubs.ForeColor = Color.WhiteSmoke;
             btnTeamsAndClubs.Location = new Point(0, 203);
             btnTeamsAndClubs.Name = "btnTeamsAndClubs";
@@ -117,7 +117,7 @@
             btnHumanResources.FlatAppearance.BorderSize = 0;
             btnHumanResources.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnHumanResources.FlatStyle = FlatStyle.Flat;
-            btnHumanResources.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnHumanResources.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnHumanResources.ForeColor = Color.WhiteSmoke;
             btnHumanResources.Location = new Point(0, 246);
             btnHumanResources.Name = "btnHumanResources";
@@ -132,7 +132,7 @@
             btnSystemAdmnistration.FlatAppearance.BorderSize = 0;
             btnSystemAdmnistration.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnSystemAdmnistration.FlatStyle = FlatStyle.Flat;
-            btnSystemAdmnistration.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnSystemAdmnistration.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnSystemAdmnistration.ForeColor = Color.WhiteSmoke;
             btnSystemAdmnistration.Location = new Point(0, 117);
             btnSystemAdmnistration.Name = "btnSystemAdmnistration";
@@ -147,7 +147,7 @@
             btnCompetitionsAndSeasons.FlatAppearance.BorderSize = 0;
             btnCompetitionsAndSeasons.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnCompetitionsAndSeasons.FlatStyle = FlatStyle.Flat;
-            btnCompetitionsAndSeasons.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnCompetitionsAndSeasons.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnCompetitionsAndSeasons.ForeColor = Color.WhiteSmoke;
             btnCompetitionsAndSeasons.Location = new Point(0, 160);
             btnCompetitionsAndSeasons.Name = "btnCompetitionsAndSeasons";
@@ -162,7 +162,7 @@
             btnGameMatchesAndEvents.FlatAppearance.BorderSize = 0;
             btnGameMatchesAndEvents.FlatAppearance.MouseOverBackColor = Color.FromArgb(77, 161, 103);
             btnGameMatchesAndEvents.FlatStyle = FlatStyle.Flat;
-            btnGameMatchesAndEvents.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnGameMatchesAndEvents.Font = new Font("Outfit SemiBold", 11.25F, FontStyle.Bold);
             btnGameMatchesAndEvents.ForeColor = Color.WhiteSmoke;
             btnGameMatchesAndEvents.Location = new Point(0, 332);
             btnGameMatchesAndEvents.Name = "btnGameMatchesAndEvents";

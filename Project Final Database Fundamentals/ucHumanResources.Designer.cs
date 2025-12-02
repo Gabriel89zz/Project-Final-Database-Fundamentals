@@ -28,13 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle12 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle13 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle14 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
             tabControlHumanResources = new TabControl();
             tabPagePlayer = new TabPage();
             label1 = new Label();
@@ -293,16 +293,17 @@
             // dgvPlayer
             // 
             dgvPlayer.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = SystemColors.Window;
-            dataGridViewCellStyle8.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle8.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle8.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle8.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.False;
-            dgvPlayer.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvPlayer.DefaultCellStyle = dataGridViewCellStyle1;
             dgvPlayer.Location = new Point(0, 0);
             dgvPlayer.Name = "dgvPlayer";
+            dgvPlayer.ReadOnly = true;
             dgvPlayer.Size = new Size(729, 247);
             dgvPlayer.TabIndex = 0;
             dgvPlayer.CellClick += dgvPlayer_CellClick;
@@ -367,6 +368,9 @@
             // 
             // cmbPlayerFoot
             // 
+            cmbPlayerFoot.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerFoot.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerFoot.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerFoot.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbPlayerFoot.FormattingEnabled = true;
             cmbPlayerFoot.Location = new Point(119, 121);
@@ -398,6 +402,7 @@
             // 
             nudPlayerWeight.DecimalPlaces = 2;
             nudPlayerWeight.Location = new Point(338, 118);
+            nudPlayerWeight.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             nudPlayerWeight.Name = "nudPlayerWeight";
             nudPlayerWeight.Size = new Size(59, 26);
             nudPlayerWeight.TabIndex = 17;
@@ -406,12 +411,16 @@
             // 
             nudPlayerHeigth.DecimalPlaces = 2;
             nudPlayerHeigth.Location = new Point(263, 119);
+            nudPlayerHeigth.Maximum = new decimal(new int[] { 300, 0, 0, 0 });
             nudPlayerHeigth.Name = "nudPlayerHeigth";
             nudPlayerHeigth.Size = new Size(59, 26);
             nudPlayerHeigth.TabIndex = 16;
             // 
             // cmbPlayerPosition
             // 
+            cmbPlayerPosition.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerPosition.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerPosition.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerPosition.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbPlayerPosition.FormattingEnabled = true;
             cmbPlayerPosition.Location = new Point(16, 120);
@@ -459,6 +468,9 @@
             // 
             // cmbPlayerCountry
             // 
+            cmbPlayerCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbPlayerCountry.FormattingEnabled = true;
             cmbPlayerCountry.Location = new Point(404, 44);
@@ -582,16 +594,17 @@
             // dgvCoach
             // 
             dgvCoach.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = SystemColors.Window;
-            dataGridViewCellStyle9.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle9.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.False;
-            dgvCoach.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvCoach.DefaultCellStyle = dataGridViewCellStyle2;
             dgvCoach.Location = new Point(0, 0);
             dgvCoach.Name = "dgvCoach";
+            dgvCoach.ReadOnly = true;
             dgvCoach.Size = new Size(729, 247);
             dgvCoach.TabIndex = 0;
             dgvCoach.CellClick += dgvCoach_CellClick;
@@ -686,6 +699,9 @@
             // 
             // cmbCoachCountry
             // 
+            cmbCoachCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCoachCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCoachCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCoachCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCoachCountry.FormattingEnabled = true;
             cmbCoachCountry.Location = new Point(404, 44);
@@ -809,16 +825,17 @@
             // dgvReferee
             // 
             dgvReferee.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle10.BackColor = SystemColors.Window;
-            dataGridViewCellStyle10.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle10.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle10.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle10.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle10.WrapMode = DataGridViewTriState.False;
-            dgvReferee.DefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = SystemColors.Window;
+            dataGridViewCellStyle3.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle3.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
+            dgvReferee.DefaultCellStyle = dataGridViewCellStyle3;
             dgvReferee.Location = new Point(0, 0);
             dgvReferee.Name = "dgvReferee";
+            dgvReferee.ReadOnly = true;
             dgvReferee.Size = new Size(729, 247);
             dgvReferee.TabIndex = 0;
             dgvReferee.CellClick += dgvReferee_CellClick;
@@ -913,6 +930,9 @@
             // 
             // cmbRefereeCountry
             // 
+            cmbRefereeCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbRefereeCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbRefereeCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbRefereeCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbRefereeCountry.FormattingEnabled = true;
             cmbRefereeCountry.Location = new Point(404, 44);
@@ -1036,16 +1056,17 @@
             // dgvAgent
             // 
             dgvAgent.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle11.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle11.BackColor = SystemColors.Window;
-            dataGridViewCellStyle11.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle11.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle11.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle11.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle11.WrapMode = DataGridViewTriState.False;
-            dgvAgent.DefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = SystemColors.Window;
+            dataGridViewCellStyle4.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle4.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dgvAgent.DefaultCellStyle = dataGridViewCellStyle4;
             dgvAgent.Location = new Point(0, 0);
             dgvAgent.Name = "dgvAgent";
+            dgvAgent.ReadOnly = true;
             dgvAgent.Size = new Size(729, 247);
             dgvAgent.TabIndex = 0;
             dgvAgent.CellClick += dgvAgent_CellClick;
@@ -1161,6 +1182,9 @@
             // 
             // cmbAgentCountry
             // 
+            cmbAgentCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbAgentCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbAgentCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbAgentCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbAgentCountry.FormattingEnabled = true;
             cmbAgentCountry.Location = new Point(404, 44);
@@ -1284,16 +1308,17 @@
             // dgvScout
             // 
             dgvScout.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle12.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = SystemColors.Window;
-            dataGridViewCellStyle12.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle12.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle12.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle12.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle12.WrapMode = DataGridViewTriState.False;
-            dgvScout.DefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = SystemColors.Window;
+            dataGridViewCellStyle5.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvScout.DefaultCellStyle = dataGridViewCellStyle5;
             dgvScout.Location = new Point(0, 0);
             dgvScout.Name = "dgvScout";
+            dgvScout.ReadOnly = true;
             dgvScout.Size = new Size(729, 247);
             dgvScout.TabIndex = 0;
             dgvScout.CellClick += dgvScout_CellClick;
@@ -1337,6 +1362,9 @@
             // 
             // cmbScoutRegion
             // 
+            cmbScoutRegion.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbScoutRegion.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbScoutRegion.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbScoutRegion.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbScoutRegion.FormattingEnabled = true;
             cmbScoutRegion.Location = new Point(404, 121);
@@ -1410,6 +1438,9 @@
             // 
             // cmbScoutCountry
             // 
+            cmbScoutCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbScoutCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbScoutCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbScoutCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbScoutCountry.FormattingEnabled = true;
             cmbScoutCountry.Location = new Point(404, 44);
@@ -1533,16 +1564,17 @@
             // dgvStaffMember
             // 
             dgvStaffMember.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle13.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle13.BackColor = SystemColors.Window;
-            dataGridViewCellStyle13.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle13.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle13.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle13.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle13.WrapMode = DataGridViewTriState.False;
-            dgvStaffMember.DefaultCellStyle = dataGridViewCellStyle13;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = SystemColors.Window;
+            dataGridViewCellStyle6.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle6.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
+            dgvStaffMember.DefaultCellStyle = dataGridViewCellStyle6;
             dgvStaffMember.Location = new Point(0, 0);
             dgvStaffMember.Name = "dgvStaffMember";
+            dgvStaffMember.ReadOnly = true;
             dgvStaffMember.Size = new Size(729, 247);
             dgvStaffMember.TabIndex = 0;
             dgvStaffMember.CellClick += dgvStaffMember_CellClick;
@@ -1584,6 +1616,9 @@
             // 
             // cmbStaffMemberRole
             // 
+            cmbStaffMemberRole.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbStaffMemberRole.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbStaffMemberRole.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStaffMemberRole.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbStaffMemberRole.FormattingEnabled = true;
             cmbStaffMemberRole.Location = new Point(16, 123);
@@ -1638,6 +1673,9 @@
             // 
             // cmbStaffMemberCountry
             // 
+            cmbStaffMemberCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbStaffMemberCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbStaffMemberCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStaffMemberCountry.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbStaffMemberCountry.FormattingEnabled = true;
             cmbStaffMemberCountry.Location = new Point(404, 44);
@@ -1761,16 +1799,17 @@
             // dgvStaffRole
             // 
             dgvStaffRole.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle14.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle14.BackColor = SystemColors.Window;
-            dataGridViewCellStyle14.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle14.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle14.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle14.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle14.WrapMode = DataGridViewTriState.False;
-            dgvStaffRole.DefaultCellStyle = dataGridViewCellStyle14;
+            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = SystemColors.Window;
+            dataGridViewCellStyle7.Font = new Font("Outfit Medium", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle7.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle7.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = DataGridViewTriState.False;
+            dgvStaffRole.DefaultCellStyle = dataGridViewCellStyle7;
             dgvStaffRole.Location = new Point(0, 0);
             dgvStaffRole.Name = "dgvStaffRole";
+            dgvStaffRole.ReadOnly = true;
             dgvStaffRole.Size = new Size(729, 247);
             dgvStaffRole.TabIndex = 0;
             dgvStaffRole.CellClick += dgvStaffRole_CellClick;

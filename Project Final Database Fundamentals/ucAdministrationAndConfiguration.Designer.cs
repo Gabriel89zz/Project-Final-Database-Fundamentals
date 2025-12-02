@@ -80,7 +80,7 @@
             btnAddStadium = new Button();
             btnUpdateStadium = new Button();
             panel7 = new Panel();
-            txtCapacity = new TextBox();
+            numStadiumCapacity = new NumericUpDown();
             label25 = new Label();
             cmbStadiumCity = new ComboBox();
             label16 = new Label();
@@ -180,6 +180,7 @@
             tabStadium.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvStadiums).BeginInit();
             panel7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numStadiumCapacity).BeginInit();
             tabAwards.SuspendLayout();
             panel9.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvAwards).BeginInit();
@@ -302,6 +303,7 @@
             dgvConfederations.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvConfederations.Location = new Point(0, 0);
             dgvConfederations.Name = "dgvConfederations";
+            dgvConfederations.ReadOnly = true;
             dgvConfederations.Size = new Size(729, 247);
             dgvConfederations.TabIndex = 0;
             dgvConfederations.CellClick += dgvConfederations_CellClick;
@@ -478,6 +480,7 @@
             dgvCountries.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCountries.Location = new Point(0, 0);
             dgvCountries.Name = "dgvCountries";
+            dgvCountries.ReadOnly = true;
             dgvCountries.Size = new Size(729, 247);
             dgvCountries.TabIndex = 0;
             dgvCountries.CellClick += dgvCountries_CellClick;
@@ -515,7 +518,10 @@
             // 
             // cmbConfederation
             // 
+            cmbConfederation.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbConfederation.AutoCompleteSource = AutoCompleteSource.ListItems;
             cmbConfederation.BackColor = SystemColors.Window;
+            cmbConfederation.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbConfederation.FlatStyle = FlatStyle.System;
             cmbConfederation.Font = new Font("Microsoft Sans Serif", 8.999999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbConfederation.FormattingEnabled = true;
@@ -667,6 +673,7 @@
             dgvCity.DefaultCellStyle = dataGridViewCellStyle1;
             dgvCity.Location = new Point(0, 0);
             dgvCity.Name = "dgvCity";
+            dgvCity.ReadOnly = true;
             dgvCity.Size = new Size(729, 247);
             dgvCity.TabIndex = 0;
             dgvCity.CellClick += dgvCity_CellClick;
@@ -702,6 +709,9 @@
             // 
             // cmbCountryCity
             // 
+            cmbCountryCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCountryCity.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCountryCity.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCountryCity.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbCountryCity.FormattingEnabled = true;
             cmbCountryCity.Location = new Point(202, 47);
@@ -774,6 +784,7 @@
             dgvStadiums.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvStadiums.Location = new Point(25, 253);
             dgvStadiums.Name = "dgvStadiums";
+            dgvStadiums.ReadOnly = true;
             dgvStadiums.Size = new Size(729, 247);
             dgvStadiums.TabIndex = 37;
             dgvStadiums.CellClick += dgvStadiums_CellClick;
@@ -845,7 +856,7 @@
             // panel7
             // 
             panel7.BackColor = Color.White;
-            panel7.Controls.Add(txtCapacity);
+            panel7.Controls.Add(numStadiumCapacity);
             panel7.Controls.Add(label25);
             panel7.Controls.Add(cmbStadiumCity);
             panel7.Controls.Add(label16);
@@ -857,13 +868,13 @@
             panel7.Size = new Size(589, 167);
             panel7.TabIndex = 32;
             // 
-            // txtCapacity
+            // numStadiumCapacity
             // 
-            txtCapacity.Font = new Font("Microsoft Sans Serif", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtCapacity.Location = new Point(390, 47);
-            txtCapacity.Name = "txtCapacity";
-            txtCapacity.Size = new Size(148, 24);
-            txtCapacity.TabIndex = 5;
+            numStadiumCapacity.Location = new Point(390, 47);
+            numStadiumCapacity.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            numStadiumCapacity.Name = "numStadiumCapacity";
+            numStadiumCapacity.Size = new Size(144, 24);
+            numStadiumCapacity.TabIndex = 6;
             // 
             // label25
             // 
@@ -876,6 +887,9 @@
             // 
             // cmbStadiumCity
             // 
+            cmbStadiumCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbStadiumCity.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbStadiumCity.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStadiumCity.FormattingEnabled = true;
             cmbStadiumCity.Location = new Point(202, 47);
             cmbStadiumCity.Name = "cmbStadiumCity";
@@ -991,6 +1005,7 @@
             dgvAwards.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAwards.Location = new Point(0, 0);
             dgvAwards.Name = "dgvAwards";
+            dgvAwards.ReadOnly = true;
             dgvAwards.Size = new Size(729, 247);
             dgvAwards.TabIndex = 0;
             dgvAwards.CellClick += dgvAwards_CellClick;
@@ -1147,6 +1162,7 @@
             dgvEventTypes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvEventTypes.Location = new Point(0, 0);
             dgvEventTypes.Name = "dgvEventTypes";
+            dgvEventTypes.ReadOnly = true;
             dgvEventTypes.Size = new Size(729, 247);
             dgvEventTypes.TabIndex = 0;
             dgvEventTypes.CellClick += dgvEventTypes_CellClick;
@@ -1284,6 +1300,7 @@
             dgvAgencies.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAgencies.Location = new Point(0, 0);
             dgvAgencies.Name = "dgvAgencies";
+            dgvAgencies.ReadOnly = true;
             dgvAgencies.Size = new Size(729, 247);
             dgvAgencies.TabIndex = 0;
             dgvAgencies.CellClick += dgvAgencies_CellClick;
@@ -1319,6 +1336,9 @@
             // 
             // cmbAgencyCountry
             // 
+            cmbAgencyCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbAgencyCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbAgencyCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbAgencyCountry.FormattingEnabled = true;
             cmbAgencyCountry.Location = new Point(204, 44);
             cmbAgencyCountry.Name = "cmbAgencyCountry";
@@ -1440,6 +1460,7 @@
             dgvSponsorshipTypes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvSponsorshipTypes.Location = new Point(0, 0);
             dgvSponsorshipTypes.Name = "dgvSponsorshipTypes";
+            dgvSponsorshipTypes.ReadOnly = true;
             dgvSponsorshipTypes.Size = new Size(729, 247);
             dgvSponsorshipTypes.TabIndex = 0;
             dgvSponsorshipTypes.CellClick += dgvSponsorshipTypes_CellClick;
@@ -1578,6 +1599,7 @@
             dgvSponsors.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvSponsors.Location = new Point(0, 0);
             dgvSponsors.Name = "dgvSponsors";
+            dgvSponsors.ReadOnly = true;
             dgvSponsors.Size = new Size(729, 247);
             dgvSponsors.TabIndex = 0;
             dgvSponsors.CellClick += dgvSponsors_CellClick;
@@ -1624,6 +1646,9 @@
             // 
             // cmbSponsorCountry
             // 
+            cmbSponsorCountry.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbSponsorCountry.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbSponsorCountry.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSponsorCountry.FormattingEnabled = true;
             cmbSponsorCountry.Location = new Point(375, 46);
             cmbSponsorCountry.Name = "cmbSponsorCountry";
@@ -1754,10 +1779,10 @@
             dgvSocialMediaPlatform.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvSocialMediaPlatform.Location = new Point(0, 0);
             dgvSocialMediaPlatform.Name = "dgvSocialMediaPlatform";
+            dgvSocialMediaPlatform.ReadOnly = true;
             dgvSocialMediaPlatform.Size = new Size(729, 247);
             dgvSocialMediaPlatform.TabIndex = 0;
             dgvSocialMediaPlatform.CellClick += dgvSocialMediaPlatform_CellClick;
-            dgvSocialMediaPlatform.CellContentClick += dgvSocialMediaPlatform_CellContentClick;
             // 
             // btnAddSocialMediaPlatform
             // 
@@ -1846,12 +1871,12 @@
             label14.TabIndex = 0;
             label14.Text = "Name:";
             // 
-            // uc_AdministrationAndConfiguration
+            // ucAdministrationAndConfiguration
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(tabConfederation);
-            Name = "uc_AdministrationAndConfiguration";
+            Name = "ucAdministrationAndConfiguration";
             Size = new Size(773, 546);
             tabConfederation.ResumeLayout(false);
             Confederations.ResumeLayout(false);
@@ -1877,6 +1902,7 @@
             ((System.ComponentModel.ISupportInitialize)dgvStadiums).EndInit();
             panel7.ResumeLayout(false);
             panel7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numStadiumCapacity).EndInit();
             tabAwards.ResumeLayout(false);
             tabAwards.PerformLayout();
             panel9.ResumeLayout(false);
@@ -2022,7 +2048,6 @@
         private Button btnDeleteStadium;
         private Button btnAddStadium;
         private Button btnUpdateStadium;
-        private TextBox txtCapacity;
         private Label label25;
         private TextBox txtScope;
         private Label Scope;
@@ -2061,5 +2086,6 @@
         private TextBox txtNameSocialMediaPlatform;
         private Label label35;
         private Button btnUpdateSocialMediaPlatform;
+        private NumericUpDown numStadiumCapacity;
     }
 }

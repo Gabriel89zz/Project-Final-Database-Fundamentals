@@ -12,7 +12,7 @@ namespace Project_Final_Database_Fundamentals
 {
     public partial class ucAdministrationAndConfiguration : UserControl
     {
-        private readonly int _adminUserId;
+        private readonly int _currentUser;
         private int _selectedConfederationId = 0;
         private int _selectedCountryId = 0;
         private int _selectedCityId = 0;
@@ -25,16 +25,16 @@ namespace Project_Final_Database_Fundamentals
         private int _selectedSocialMediaPlatformId = 0;
 
 
-        public ucAdministrationAndConfiguration(int adminUserId)
+        public ucAdministrationAndConfiguration(int currentUser)
         {
             InitializeComponent();
-            _adminUserId = adminUserId;
+            _currentUser = currentUser;
         }
 
         private void LoadConfederations()
         {
             // Nota: En Postgres, is_active = true (boolean)
-            string query = $"SELECT confederation_id, name, acronym, foundation_year FROM confederation WHERE is_active = true";
+            string query = $"SELECT confederation_id, name, acronym, foundation_year FROM confederation WHERE is_active = true ORDER BY confederation_id";
 
             try
             {
@@ -53,12 +53,40 @@ namespace Project_Final_Database_Fundamentals
 
                     // Set default selection
                     cmbConfederation.SelectedIndex = -1;
+                    FormatGridHeaders(dgvConfederations);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar confederaciones: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+
+        private void FormatGridHeaders(DataGridView dgv)
+        {
+            // Mapping Dictionary: "Database_Column" -> "Friendly Title"
+            var headerMap = new Dictionary<string, string>
+            {
+        { "confederation_id", "ID" },
+        { "name", "Confederation Name" },
+        { "acronym", "Acronym" },
+        { "foundation_year", "Foundation Year" },
+        { "created_at", "Created Date" },
+        { "is_active", "Active" }
+    };
+
+            // Iterate through columns and update the header text if a mapping exists
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Optional: Auto-adjust column width to fit content
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
         private void btnAddConfederation_Click_1(object sender, EventArgs e)
@@ -96,7 +124,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@acronym", acronym);
                     command.Parameters.AddWithValue("@foundationYear", (object)foundationYear ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -174,7 +202,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@acronym", acronym);
                     command.Parameters.AddWithValue("@foundationYear", (object)foundationYear ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@confederationId", _selectedConfederationId);
 
                     connection.Open();
@@ -219,10 +247,20 @@ namespace Project_Final_Database_Fundamentals
             if (e.RowIndex >= 0)
             {
                 DataGridViewRow row = dgvConfederations.Rows[e.RowIndex];
-                _selectedConfederationId = Convert.ToInt32(row.Cells["confederation_id"].Value);
-                txtNameConfederation.Text = row.Cells["name"].Value.ToString();
-                txtAcronym.Text = row.Cells["acronym"].Value.ToString();
-                txtFoundationYear.Text = row.Cells["foundation_year"].Value.ToString();
+                var idCellValue = row.Cells["confederation_id"].Value;
+
+                if (idCellValue != null && idCellValue != DBNull.Value)
+                {
+                    _selectedConfederationId = Convert.ToInt32(idCellValue);
+                }
+                else
+                {
+                    _selectedConfederationId = 0;
+                }
+
+                txtNameConfederation.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                txtAcronym.Text = row.Cells["acronym"].Value?.ToString() ?? string.Empty;
+                txtFoundationYear.Text = row.Cells["foundation_year"].Value?.ToString() ?? string.Empty;
             }
         }
 
@@ -255,7 +293,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@confederationId", _selectedConfederationId);
 
                         connection.Open();
@@ -278,17 +316,18 @@ namespace Project_Final_Database_Fundamentals
 
         private void LoadCountries()
         {
-            // We use a JOIN to show the Confederation Name instead of just the ID number
+            // 1. Modificación: Agregamos ORDER BY al final
             string query = @"
-            SELECT 
-                ""country"".country_id, 
-                ""country"".name, 
-                ""country"".iso_code, 
-                ""country"".confederation_id,
-                ""confederation"".name AS confederation_name 
-            FROM ""country""
-            INNER JOIN ""confederation"" ON ""country"".confederation_id = ""confederation"".confederation_id
-            WHERE ""country"".is_active = true";
+    SELECT 
+        ""country"".country_id, 
+        ""country"".name, 
+        ""country"".iso_code, 
+        ""country"".confederation_id,
+        ""confederation"".name AS confederation_name 
+    FROM ""country""
+    INNER JOIN ""confederation"" ON ""country"".confederation_id = ""confederation"".confederation_id
+    WHERE ""country"".is_active = true
+    ORDER BY ""country"".country_id ASC";
 
             try
             {
@@ -300,15 +339,47 @@ namespace Project_Final_Database_Fundamentals
 
                     dgvCountries.DataSource = dt;
 
-                    // Hide the raw ID columns if you want the grid to look cleaner
-                    if (dgvCountries.Columns["id"] != null) dgvCountries.Columns["id"].Visible = false;
-                    if (dgvCountries.Columns["confederation_id"] != null) dgvCountries.Columns["confederation_id"].Visible = false;
+                    // 2. Llamamos al método de formateo
+                    FormatCountryGrid(dgvCountries);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error loading countries: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void FormatCountryGrid(DataGridView dgv)
+        {
+            // Diccionario de mapeo
+            var headerMap = new Dictionary<string, string>
+    {
+        { "country_id", "ID" },
+        { "name", "Country Name" },
+        { "iso_code", "ISO Code" },
+        { "confederation_name", "Confederation" }
+    };
+
+            // Aplicar nombres amigables
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // 3. Ocultar columnas técnicas (IDs internos)
+            // Usamos una verificación segura para evitar errores si la columna no existe
+            if (dgv.Columns.Contains("confederation_id"))
+                dgv.Columns["confederation_id"].Visible = false;
+
+            // Opcional: Ocultar el ID del país si prefieres que no se vea
+            // if (dgv.Columns.Contains("country_id")) 
+            //    dgv.Columns["country_id"].Visible = false;
+
+            // 4. Configuración de tamaño (Permite Scroll Horizontal)
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private void btnAddCountry_Click(object sender, EventArgs e)
@@ -344,7 +415,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@isoCode", isoCode);
                     command.Parameters.AddWithValue("@confederationId", confederationId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -426,7 +497,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@isoCode", isoCode);
                     command.Parameters.AddWithValue("@confederationId", confederationId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@countryId", _selectedCountryId);
 
                     connection.Open();
@@ -486,7 +557,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@countryId", _selectedCountryId);
 
                         connection.Open();
@@ -509,40 +580,51 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCountries_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCountries.Rows[e.RowIndex];
-
-                // 1. Get the Country ID
-                _selectedCountryId = Convert.ToInt32(row.Cells["country_id"].Value);
-
-                // 2. Fill TextBoxes
-                txtNameCountry.Text = row.Cells["name"].Value.ToString();
-                txtIsoCode.Text = row.Cells["iso_code"].Value.ToString();
-
-                // 3. Set ComboBox Selection
-                // We take the 'confederation_id' from the grid and tell the ComboBox to select that Value
-                if (row.Cells["confederation_id"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    cmbConfederation.SelectedValue = Convert.ToInt32(row.Cells["confederation_id"].Value);
+                    DataGridViewRow row = dgvCountries.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["country_id"].Value == null || row.Cells["country_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+                    _selectedCountryId = Convert.ToInt32(row.Cells["country_id"].Value);
+
+                    txtNameCountry.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                    txtIsoCode.Text = row.Cells["iso_code"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["confederation_id"].Value != null && row.Cells["confederation_id"].Value != DBNull.Value)
+                    {
+                        cmbConfederation.SelectedValue = Convert.ToInt32(row.Cells["confederation_id"].Value);
+                    }
+                    else
+                    {
+                        cmbConfederation.SelectedIndex = -1; 
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
         private void LoadCities()
         {
-            // Join to get the Country Name
-            // NOTE: We use full table names in quotes to avoid the 42P01 error
             string query = @"
-            SELECT 
-                city_id, 
-                city.name, 
-                city.country_id, 
-                country.name AS country_name 
-            FROM city
-            INNER JOIN country ON city.country_id = country.country_id
-            WHERE city.is_active = true
-            ORDER BY city_id";
+    SELECT 
+        city_id, 
+        city.name, 
+        city.country_id, 
+        country.name AS country_name 
+    FROM city
+    INNER JOIN country ON city.country_id = country.country_id
+    WHERE city.is_active = true
+    ORDER BY city_id ASC";
 
             try
             {
@@ -554,9 +636,7 @@ namespace Project_Final_Database_Fundamentals
 
                     dgvCity.DataSource = dt;
 
-                    // Hide internal IDs
-                    if (dgvCity.Columns["id"] != null) dgvCity.Columns["id"].Visible = false;
-                    if (dgvCity.Columns["country_id"] != null) dgvCity.Columns["country_id"].Visible = false;
+                    FormatCityGrid(dgvCity);
                 }
             }
             catch (Exception ex)
@@ -565,6 +645,28 @@ namespace Project_Final_Database_Fundamentals
             }
         }
 
+        private void FormatCityGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "city_id", "ID" },
+        { "name", "City Name" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            if (dgv.Columns.Contains("country_id"))
+                dgv.Columns["country_id"].Visible = false;
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        }
 
         private void LoadCountriesForComboBox()
         {
@@ -675,7 +777,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -736,7 +838,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@cityId", _selectedCityId);
 
                     connection.Open();
@@ -781,7 +883,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@cityId", _selectedCityId);
 
                         connection.Open();
@@ -804,21 +906,36 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvCity_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvCity.Rows[e.RowIndex];
-
-                // 1. Obtener ID
-                _selectedCityId = Convert.ToInt32(row.Cells["city_id"].Value);
-
-                // 2. Llenar Nombre
-                txtNameCity.Text = row.Cells["name"].Value.ToString();
-
-                // 3. Seleccionar País en el ComboBox
-                if (row.Cells["country_id"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    cmbCountryCity.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    DataGridViewRow row = dgvCity.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["city_id"].Value == null || row.Cells["city_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedCityId = Convert.ToInt32(row.Cells["city_id"].Value);
+
+                    txtNameCity.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["country_id"].Value != null && row.Cells["country_id"].Value != DBNull.Value)
+                    {
+                        cmbCountryCity.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    }
+                    else
+                    {
+                        cmbCountryCity.SelectedIndex = -1;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -836,12 +953,11 @@ namespace Project_Final_Database_Fundamentals
         // --- ASYNC: Cargar ComboBox de Ciudades ---
         private async Task LoadCitiesForComboBoxAsync()
         {
-            //string query = @"SELECT city_id, name FROM city WHERE is_active = true ORDER BY name";
             string query = @"SELECT city_id,city.name
                             FROM city
                             inner join country on city.country_id=country.country_id
                             WHERE country.name IN ('Argentina', 'Mexico', 'Spain', 'Italy', 'United Kingdom', 'France', 'Germany','Japan')
-                            AND city.is_active = true ORDER BY city.name;";
+                            AND city.is_active = true ORDER BY city.name LIMIT 1000;";
 
             try
             {
@@ -880,7 +996,6 @@ namespace Project_Final_Database_Fundamentals
         // --- ASYNC: Cargar Grid de Estadios ---
         private async Task LoadStadiumsAsync()
         {
-            // Opcional: Mostrar un cursor de "Cargando"
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
@@ -893,7 +1008,7 @@ namespace Project_Final_Database_Fundamentals
     FROM stadium
     INNER JOIN city ON stadium.city_id = city.city_id
     WHERE stadium.is_active = true
-    ORDER BY stadium_id DESC";
+    ORDER BY stadium_id";
 
             try
             {
@@ -909,33 +1024,57 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvStadiums.DataSource = dt;
 
-                        if (dgvStadiums.Columns["stadium_id"] != null)
-                        {
-                            dgvStadiums.Columns["stadium_id"].Visible = true; 
-                            dgvStadiums.Columns["stadium_id"].HeaderText = "ID Estadio";
-                            dgvStadiums.Columns["stadium_id"].DisplayIndex = 0; 
-                            dgvStadiums.Columns["stadium_id"].Width = 60; 
-                        }
-                        if (dgvStadiums.Columns["city_id"] != null)
-                            dgvStadiums.Columns["city_id"].Visible = false;
+                        FormatStadiumGrid(dgvStadiums);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading stadiums: " + ex.Message);
+                MessageBox.Show("Error loading stadiums: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                // Restaurar el cursor normal pase lo que pase
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatStadiumGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "stadium_id", "ID" },
+        { "name", "Stadium Name" },
+        { "capacity", "Capacity" },
+        { "city_name", "City" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("city_id"))
+                dgv.Columns["city_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("stadium_id"))
+            {
+                dgv.Columns["stadium_id"].Visible = true;
+                dgv.Columns["stadium_id"].DisplayIndex = 0; // Ensure it's first
+                dgv.Columns["stadium_id"].Width = 60;       // Keep it narrow
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private void btnAddStadium_Click(object sender, EventArgs e)
         {
             string name = txtNameStadium.Text.Trim();
-            string capacityStr = txtCapacity.Text.Trim();
+            int capacity = (int)numStadiumCapacity.Value;
 
             // 1. Validate ComboBox
             if (cmbStadiumCity.SelectedValue == null || (int)cmbStadiumCity.SelectedValue == -1)
@@ -946,18 +1085,12 @@ namespace Project_Final_Database_Fundamentals
             int cityId = (int)cmbStadiumCity.SelectedValue;
 
             // 2. Validate Strings
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(capacityStr))
+            if (string.IsNullOrEmpty(name))
             {
-                MessageBox.Show("Name and Capacity are required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Name  are required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 3. Validate Integer (Capacity)
-            if (!int.TryParse(capacityStr, out int capacity))
-            {
-                MessageBox.Show("Capacity must be a valid number.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
 
             string query = @"
         INSERT INTO stadium (name, capacity, city_id, created_by) 
@@ -971,7 +1104,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@capacity", capacity);
                     command.Parameters.AddWithValue("@cityId", cityId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1006,7 +1139,7 @@ namespace Project_Final_Database_Fundamentals
             }
 
             string name = txtNameStadium.Text.Trim();
-            string capacityStr = txtCapacity.Text.Trim();
+            string capacityStr = numStadiumCapacity.Text.Trim();
 
             if (cmbStadiumCity.SelectedValue == null || (int)cmbStadiumCity.SelectedValue == -1)
             {
@@ -1039,7 +1172,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@capacity", capacity);
                     command.Parameters.AddWithValue("@cityId", cityId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@stadiumId", _selectedStadiumId);
 
                     connection.Open();
@@ -1084,7 +1217,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@stadiumId", _selectedStadiumId);
 
                         connection.Open();
@@ -1109,7 +1242,7 @@ namespace Project_Final_Database_Fundamentals
         {
             _selectedStadiumId = 0;
             txtNameStadium.Clear();
-            txtCapacity.Clear();
+            numStadiumCapacity.Value=0;
 
             if (cmbStadiumCity.Items.Count > 0)
                 cmbStadiumCity.SelectedIndex = 0;
@@ -1119,65 +1252,106 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvStadiums_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvStadiums.Rows[e.RowIndex];
-
-                // 1. Get ID
-                _selectedStadiumId = Convert.ToInt32(row.Cells["stadium_id"].Value);
-
-                // 2. Fill TextFields
-                txtNameStadium.Text = row.Cells["name"].Value.ToString();
-                txtCapacity.Text = row.Cells["capacity"].Value.ToString();
-
-                // 3. Set ComboBox Selection
-                if (row.Cells["city_id"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    cmbStadiumCity.SelectedValue = Convert.ToInt32(row.Cells["city_id"].Value);
+                    DataGridViewRow row = dgvStadiums.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["stadium_id"].Value == null || row.Cells["stadium_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedStadiumId = Convert.ToInt32(row.Cells["stadium_id"].Value);
+
+                    txtNameStadium.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                    numStadiumCapacity.Text = row.Cells["capacity"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["city_id"].Value != null && row.Cells["city_id"].Value != DBNull.Value)
+                    {
+                        cmbStadiumCity.SelectedValue = Convert.ToInt32(row.Cells["city_id"].Value);
+                    }
+                    else
+                    {
+                        cmbStadiumCity.SelectedIndex = -1;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private async Task LoadAwardsAsync()
         {
-            // Opcional: Change cursor to indicate loading
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            award_id, 
-            name, 
-            scope 
-        FROM award
-        WHERE is_active = true
-        ORDER BY award_id DESC";
+    SELECT 
+        award_id, 
+        name, 
+        scope 
+    FROM award
+    WHERE is_active = true
+    ORDER BY award_id ASC"; // Cambiado a ASC para consistencia, puedes volver a DESC si prefieres
 
             try
             {
                 using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                 {
-                    await connection.OpenAsync(); // Non-blocking connection
+                    await connection.OpenAsync();
 
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
-                    using (NpgsqlDataReader reader = await command.ExecuteReaderAsync()) // Non-blocking query
+                    using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         DataTable dt = new DataTable();
                         dt.Load(reader);
 
                         dgvAwards.DataSource = dt;
 
-                        // Hide internal ID
-                        if (dgvAwards.Columns["award_id"] != null) dgvAwards.Columns["award_id"].Visible = false;
+                        FormatAwardGrid(dgvAwards);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading awards: " + ex.Message);
+                MessageBox.Show("Error loading awards: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatAwardGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "award_id", "ID" },
+        { "name", "Award Name" },
+        { "scope", "Scope" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("award_id"))
+            {
+                dgv.Columns["award_id"].Visible = true;
+                dgv.Columns["award_id"].DisplayIndex = 0;
+                dgv.Columns["award_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
         private async void btnAddAward_Click(object sender, EventArgs e)
@@ -1203,7 +1377,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@scope", scope);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery(); // Insert is fast, usually synchronous is fine here, but keep logic consistent
@@ -1255,7 +1429,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@scope", scope);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@awardId", _selectedAwardId);
 
                     connection.Open();
@@ -1300,7 +1474,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@awardId", _selectedAwardId);
 
                         connection.Open();
@@ -1331,13 +1505,27 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvAwards_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvAwards.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvAwards.Rows[e.RowIndex];
 
-                _selectedAwardId = Convert.ToInt32(row.Cells["award_id"].Value);
-                txtNameAward.Text = row.Cells["name"].Value.ToString();
-                txtScope.Text = row.Cells["scope"].Value.ToString();
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["award_id"].Value == null || row.Cells["award_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedAwardId = Convert.ToInt32(row.Cells["award_id"].Value);
+                    txtNameAward.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                    txtScope.Text = row.Cells["scope"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1347,12 +1535,12 @@ namespace Project_Final_Database_Fundamentals
 
             // Standard query fetching ID and Name
             string query = @"
-        SELECT 
-            event_type_id, 
-            name 
-        FROM event_type
-        WHERE is_active = true
-        ORDER BY event_type_id DESC";
+    SELECT 
+        event_type_id, 
+        name 
+    FROM event_type
+    WHERE is_active = true
+    ORDER BY event_type_id ASC"; // Cambiado a ASC para consistencia
 
             try
             {
@@ -1368,20 +1556,45 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvEventTypes.DataSource = dt;
 
-                        // Hide the ID column
-                        if (dgvEventTypes.Columns["event_type_id"] != null)
-                            dgvEventTypes.Columns["event_type_id"].Visible = false;
+                        FormatEventTypeGrid(dgvEventTypes);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading event types: " + ex.Message);
+                MessageBox.Show("Error loading event types: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatEventTypeGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "event_type_id", "ID" },
+        { "name", "Event Type Name" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("event_type_id"))
+            {
+                dgv.Columns["event_type_id"].Visible = true;
+                dgv.Columns["event_type_id"].DisplayIndex = 0;
+                dgv.Columns["event_type_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
         private async void btnAddEventType_Click(object sender, EventArgs e)
@@ -1404,7 +1617,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", name);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1460,7 +1673,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", name);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@eventTypeId", _selectedEventTypeId);
 
                     connection.Open();
@@ -1512,7 +1725,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@eventTypeId", _selectedEventTypeId);
 
                         connection.Open();
@@ -1542,12 +1755,26 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvEventTypes_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvEventTypes.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvEventTypes.Rows[e.RowIndex];
 
-                _selectedEventTypeId = Convert.ToInt32(row.Cells["event_type_id"].Value);
-                txtNameEventType.Text = row.Cells["name"].Value.ToString();
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["event_type_id"].Value == null || row.Cells["event_type_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedEventTypeId = Convert.ToInt32(row.Cells["event_type_id"].Value);
+                    txtNameEventType.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1596,15 +1823,15 @@ namespace Project_Final_Database_Fundamentals
 
             // JOIN to get Country Name
             string query = @"
-        SELECT 
-            agency.agency_id, 
-            agency.name, 
-            agency.country_id, 
-            country.name AS country_name 
-        FROM agency
-        INNER JOIN ""country"" ON agency.country_id = ""country"".country_id
-        WHERE agency.is_active = true
-        ORDER BY agency.agency_id DESC";
+    SELECT 
+        agency.agency_id, 
+        agency.name, 
+        agency.country_id, 
+        ""country"".name AS country_name 
+    FROM agency
+    INNER JOIN ""country"" ON agency.country_id = ""country"".country_id
+    WHERE agency.is_active = true
+    ORDER BY agency.agency_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -1620,20 +1847,50 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvAgencies.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvAgencies.Columns["agency_id"] != null) dgvAgencies.Columns["agency_id"].Visible = false;
-                        if (dgvAgencies.Columns["country_id"] != null) dgvAgencies.Columns["country_id"].Visible = false;
+                        FormatAgencyGrid(dgvAgencies);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading agencies: " + ex.Message);
+                MessageBox.Show("Error loading agencies: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatAgencyGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "agency_id", "ID" },
+        { "name", "Agency Name" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("country_id"))
+                dgv.Columns["country_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("agency_id"))
+            {
+                dgv.Columns["agency_id"].Visible = true;
+                dgv.Columns["agency_id"].DisplayIndex = 0;
+                dgv.Columns["agency_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddAgency_Click(object sender, EventArgs e)
@@ -1666,7 +1923,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1731,7 +1988,7 @@ namespace Project_Final_Database_Fundamentals
                 {
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@agencyId", _selectedAgencyId);
 
                     connection.Open();
@@ -1776,7 +2033,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@agencyId", _selectedAgencyId);
 
                         connection.Open();
@@ -1810,21 +2067,36 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvAgencies_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvAgencies.Rows[e.RowIndex];
-
-                // 1. Get ID
-                _selectedAgencyId = Convert.ToInt32(row.Cells["agency_id"].Value);
-
-                // 2. Fill Name
-                txtNameAgency.Text = row.Cells["name"].Value.ToString();
-
-                // 3. Set ComboBox Selection
-                if (row.Cells["country_id"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    cmbAgencyCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    DataGridViewRow row = dgvAgencies.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["agency_id"].Value == null || row.Cells["agency_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedAgencyId = Convert.ToInt32(row.Cells["agency_id"].Value);
+
+                    txtNameAgency.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["country_id"].Value != null && row.Cells["country_id"].Value != DBNull.Value)
+                    {
+                        cmbAgencyCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    }
+                    else
+                    {
+                        cmbAgencyCountry.SelectedIndex = -1;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private async Task LoadSponsorshipTypesAsync()
@@ -1832,12 +2104,12 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            sponsorship_type_id, 
-            type_name 
-        FROM sponsorship_type
-        WHERE is_active = true
-        ORDER BY sponsorship_type_id DESC";
+    SELECT 
+        sponsorship_type_id, 
+        type_name 
+    FROM sponsorship_type
+    WHERE is_active = true
+    ORDER BY sponsorship_type_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -1853,20 +2125,45 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvSponsorshipTypes.DataSource = dt;
 
-                        // Hide the ID column
-                        if (dgvSponsorshipTypes.Columns["sponsorship_type_id"] != null)
-                            dgvSponsorshipTypes.Columns["sponsorship_type_id"].Visible = false;
+                        FormatSponsorshipTypeGrid(dgvSponsorshipTypes);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading sponsorship types: " + ex.Message);
+                MessageBox.Show("Error loading sponsorship types: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatSponsorshipTypeGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "sponsorship_type_id", "ID" },
+        { "type_name", "Type Name" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("sponsorship_type_id"))
+            {
+                dgv.Columns["sponsorship_type_id"].Visible = true;
+                dgv.Columns["sponsorship_type_id"].DisplayIndex = 0;
+                dgv.Columns["sponsorship_type_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddSponsorshipType_Click(object sender, EventArgs e)
@@ -1889,7 +2186,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@typeName", typeName);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -1945,7 +2242,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@typeName", typeName);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@sponsorshipTypeId", _selectedSponsorshipTypeId);
 
                     connection.Open();
@@ -1997,7 +2294,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@sponsorshipTypeId", _selectedSponsorshipTypeId);
 
                         connection.Open();
@@ -2027,12 +2324,26 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvSponsorshipTypes_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvSponsorshipTypes.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvSponsorshipTypes.Rows[e.RowIndex];
 
-                _selectedSponsorshipTypeId = Convert.ToInt32(row.Cells["sponsorship_type_id"].Value);
-                txtTypeName.Text = row.Cells["type_name"].Value.ToString();
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["sponsorship_type_id"].Value == null || row.Cells["sponsorship_type_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedSponsorshipTypeId = Convert.ToInt32(row.Cells["sponsorship_type_id"].Value);
+                    txtTypeName.Text = row.Cells["type_name"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2080,16 +2391,16 @@ namespace Project_Final_Database_Fundamentals
 
             // JOIN to get Country Name
             string query = @"
-        SELECT 
-            s.sponsor_id, 
-            s.name, 
-            s.industry,
-            s.country_id, 
-            c.name AS country_name 
-        FROM sponsor s
-        INNER JOIN ""country"" c ON s.country_id = c.country_id
-        WHERE s.is_active = true
-        ORDER BY s.sponsor_id DESC";
+    SELECT 
+        s.sponsor_id, 
+        s.name, 
+        s.industry,
+        s.country_id, 
+        c.name AS country_name 
+    FROM sponsor s
+    INNER JOIN ""country"" c ON s.country_id = c.country_id
+    WHERE s.is_active = true
+    ORDER BY s.sponsor_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -2105,20 +2416,51 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvSponsors.DataSource = dt;
 
-                        // Hide internal IDs
-                        if (dgvSponsors.Columns["sponsor_id"] != null) dgvSponsors.Columns["sponsor_id"].Visible = false;
-                        if (dgvSponsors.Columns["country_id"] != null) dgvSponsors.Columns["country_id"].Visible = false;
+                        FormatSponsorGrid(dgvSponsors);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading sponsors: " + ex.Message);
+                MessageBox.Show("Error loading sponsors: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatSponsorGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "sponsor_id", "ID" },
+        { "name", "Sponsor Name" },
+        { "industry", "Industry" },
+        { "country_name", "Country" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Hide foreign keys
+            if (dgv.Columns.Contains("country_id"))
+                dgv.Columns["country_id"].Visible = false;
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("sponsor_id"))
+            {
+                dgv.Columns["sponsor_id"].Visible = true;
+                dgv.Columns["sponsor_id"].DisplayIndex = 0;
+                dgv.Columns["sponsor_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddSponsor_Click(object sender, EventArgs e)
@@ -2153,7 +2495,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@industry", industry);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2221,7 +2563,7 @@ namespace Project_Final_Database_Fundamentals
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@industry", industry);
                     command.Parameters.AddWithValue("@countryId", countryId);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@sponsorId", _selectedSponsorId);
 
                     connection.Open();
@@ -2266,7 +2608,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@sponsorId", _selectedSponsorId);
 
                         connection.Open();
@@ -2289,21 +2631,37 @@ namespace Project_Final_Database_Fundamentals
 
         private void dgvSponsors_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvSponsors.Rows[e.RowIndex];
-
-                // 1. Get ID
-                _selectedSponsorId = Convert.ToInt32(row.Cells["sponsor_id"].Value);
-
-                // 2. Fill TextBoxes
-                txtSponsorName.Text = row.Cells["name"].Value.ToString();
-                txtSponsorIndustry.Text = row.Cells["industry"].Value.ToString();
-                // 3. Set ComboBox Selection
-                if (row.Cells["country_id"].Value != DBNull.Value)
+                if (e.RowIndex >= 0)
                 {
-                    cmbSponsorCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    DataGridViewRow row = dgvSponsors.Rows[e.RowIndex];
+
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["sponsor_id"].Value == null || row.Cells["sponsor_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedSponsorId = Convert.ToInt32(row.Cells["sponsor_id"].Value);
+
+                    txtSponsorName.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                    txtSponsorIndustry.Text = row.Cells["industry"].Value?.ToString() ?? string.Empty;
+
+                    if (row.Cells["country_id"].Value != null && row.Cells["country_id"].Value != DBNull.Value)
+                    {
+                        cmbSponsorCountry.SelectedValue = Convert.ToInt32(row.Cells["country_id"].Value);
+                    }
+                    else
+                    {
+                        cmbSponsorCountry.SelectedIndex = -1;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2324,12 +2682,12 @@ namespace Project_Final_Database_Fundamentals
             this.Cursor = Cursors.WaitCursor;
 
             string query = @"
-        SELECT 
-            social_media_platform_id, 
-            name 
-        FROM social_media_platform
-        WHERE is_active = true
-        ORDER BY social_media_platform_id DESC";
+    SELECT 
+        social_media_platform_id, 
+        name 
+    FROM social_media_platform
+    WHERE is_active = true
+    ORDER BY social_media_platform_id ASC"; // Changed to ASC for consistency
 
             try
             {
@@ -2345,20 +2703,45 @@ namespace Project_Final_Database_Fundamentals
 
                         dgvSocialMediaPlatform.DataSource = dt;
 
-                        // Hide the ID column
-                        if (dgvSocialMediaPlatform.Columns["social_media_platform_id"] != null)
-                            dgvSocialMediaPlatform.Columns["social_media_platform_id"].Visible = false;
+                        FormatSocialMediaPlatformGrid(dgvSocialMediaPlatform);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading social media platforms: " + ex.Message);
+                MessageBox.Show("Error loading social media platforms: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
             }
+        }
+
+        private void FormatSocialMediaPlatformGrid(DataGridView dgv)
+        {
+            var headerMap = new Dictionary<string, string>
+    {
+        { "social_media_platform_id", "ID" },
+        { "name", "Platform Name" }
+    };
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (headerMap.ContainsKey(col.Name))
+                {
+                    col.HeaderText = headerMap[col.Name];
+                }
+            }
+
+            // Specific formatting for the Main ID
+            if (dgv.Columns.Contains("social_media_platform_id"))
+            {
+                dgv.Columns["social_media_platform_id"].Visible = true;
+                dgv.Columns["social_media_platform_id"].DisplayIndex = 0;
+                dgv.Columns["social_media_platform_id"].Width = 60;
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
         }
 
         private async void btnAddSocialMediaPlatform_Click(object sender, EventArgs e)
@@ -2381,7 +2764,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", name);
-                    command.Parameters.AddWithValue("@creatorId", _adminUserId);
+                    command.Parameters.AddWithValue("@creatorId", _currentUser);
 
                     connection.Open();
                     int result = command.ExecuteNonQuery();
@@ -2437,7 +2820,7 @@ namespace Project_Final_Database_Fundamentals
                 using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@name", name);
-                    command.Parameters.AddWithValue("@updaterId", _adminUserId);
+                    command.Parameters.AddWithValue("@updaterId", _currentUser);
                     command.Parameters.AddWithValue("@platformId", _selectedSocialMediaPlatformId);
 
                     connection.Open();
@@ -2489,7 +2872,7 @@ namespace Project_Final_Database_Fundamentals
                     using (NpgsqlConnection connection = DatabaseConnection.GetConnection())
                     using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@deleterId", _adminUserId);
+                        command.Parameters.AddWithValue("@deleterId", _currentUser);
                         command.Parameters.AddWithValue("@platformId", _selectedSocialMediaPlatformId);
 
                         connection.Open();
@@ -2517,19 +2900,28 @@ namespace Project_Final_Database_Fundamentals
             dgvSocialMediaPlatform.ClearSelection();
         }
 
-        private void dgvSocialMediaPlatform_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         private void dgvSocialMediaPlatform_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                DataGridViewRow row = dgvSocialMediaPlatform.Rows[e.RowIndex];
+                if (e.RowIndex >= 0)
+                {
+                    DataGridViewRow row = dgvSocialMediaPlatform.Rows[e.RowIndex];
 
-                _selectedSocialMediaPlatformId = Convert.ToInt32(row.Cells["social_media_platform_id"].Value);
-                txtNameSocialMediaPlatform.Text = row.Cells["name"].Value.ToString();
+                    if (row.IsNewRow) return;
+
+                    if (row.Cells["social_media_platform_id"].Value == null || row.Cells["social_media_platform_id"].Value == DBNull.Value)
+                    {
+                        return;
+                    }
+
+                    _selectedSocialMediaPlatformId = Convert.ToInt32(row.Cells["social_media_platform_id"].Value);
+                    txtNameSocialMediaPlatform.Text = row.Cells["name"].Value?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error selecting record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

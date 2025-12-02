@@ -312,6 +312,7 @@
             dgvInjury.DefaultCellStyle = dataGridViewCellStyle8;
             dgvInjury.Location = new Point(0, 0);
             dgvInjury.Name = "dgvInjury";
+            dgvInjury.ReadOnly = true;
             dgvInjury.Size = new Size(729, 247);
             dgvInjury.TabIndex = 0;
             dgvInjury.CellClick += dgvInjury_CellClick;
@@ -355,6 +356,9 @@
             // 
             // cmbInjuryMatch
             // 
+            cmbInjuryMatch.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbInjuryMatch.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbInjuryMatch.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInjuryMatch.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbInjuryMatch.FormattingEnabled = true;
             cmbInjuryMatch.Location = new Point(403, 44);
@@ -425,6 +429,9 @@
             // 
             // cmbInjuryType
             // 
+            cmbInjuryType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbInjuryType.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbInjuryType.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInjuryType.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbInjuryType.FormattingEnabled = true;
             cmbInjuryType.Location = new Point(210, 44);
@@ -444,6 +451,9 @@
             // 
             // cmbInjuryPlayer
             // 
+            cmbInjuryPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbInjuryPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbInjuryPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInjuryPlayer.Font = new Font("Outfit Light", 9.749999F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbInjuryPlayer.FormattingEnabled = true;
             cmbInjuryPlayer.Location = new Point(18, 44);
@@ -559,6 +569,7 @@
             dgvInjuryType.DefaultCellStyle = dataGridViewCellStyle9;
             dgvInjuryType.Location = new Point(0, 0);
             dgvInjuryType.Name = "dgvInjuryType";
+            dgvInjuryType.ReadOnly = true;
             dgvInjuryType.Size = new Size(729, 247);
             dgvInjuryType.TabIndex = 0;
             dgvInjuryType.CellClick += dgvInjuryType_CellClick;
@@ -594,6 +605,9 @@
             // 
             // cmbInjuryTypeSeverity
             // 
+            cmbInjuryTypeSeverity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbInjuryTypeSeverity.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbInjuryTypeSeverity.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInjuryTypeSeverity.FormattingEnabled = true;
             cmbInjuryTypeSeverity.Location = new Point(333, 42);
             cmbInjuryTypeSeverity.Name = "cmbInjuryTypeSeverity";
@@ -725,6 +739,7 @@
             dgvPlayerAvailability.DefaultCellStyle = dataGridViewCellStyle10;
             dgvPlayerAvailability.Location = new Point(0, 0);
             dgvPlayerAvailability.Name = "dgvPlayerAvailability";
+            dgvPlayerAvailability.ReadOnly = true;
             dgvPlayerAvailability.Size = new Size(729, 247);
             dgvPlayerAvailability.TabIndex = 0;
             dgvPlayerAvailability.CellClick += dgvPlayerAvailability_CellClick;
@@ -782,6 +797,9 @@
             // 
             // cmbPlayerAvailabilityStatus
             // 
+            cmbPlayerAvailabilityStatus.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAvailabilityStatus.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAvailabilityStatus.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAvailabilityStatus.FormattingEnabled = true;
             cmbPlayerAvailabilityStatus.Location = new Point(412, 42);
             cmbPlayerAvailabilityStatus.Name = "cmbPlayerAvailabilityStatus";
@@ -800,6 +818,9 @@
             // 
             // cmbPlayerAvailabilityMatch
             // 
+            cmbPlayerAvailabilityMatch.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAvailabilityMatch.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAvailabilityMatch.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAvailabilityMatch.FormattingEnabled = true;
             cmbPlayerAvailabilityMatch.Location = new Point(215, 42);
             cmbPlayerAvailabilityMatch.Name = "cmbPlayerAvailabilityMatch";
@@ -818,6 +839,9 @@
             // 
             // cmbPlayerAvailabilityPlayer
             // 
+            cmbPlayerAvailabilityPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAvailabilityPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAvailabilityPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAvailabilityPlayer.FormattingEnabled = true;
             cmbPlayerAvailabilityPlayer.Location = new Point(18, 42);
             cmbPlayerAvailabilityPlayer.Name = "cmbPlayerAvailabilityPlayer";
@@ -933,6 +957,7 @@
             dgvPlayerSeasonStat.Dock = DockStyle.Fill;
             dgvPlayerSeasonStat.Location = new Point(0, 0);
             dgvPlayerSeasonStat.Name = "dgvPlayerSeasonStat";
+            dgvPlayerSeasonStat.ReadOnly = true;
             dgvPlayerSeasonStat.Size = new Size(729, 217);
             dgvPlayerSeasonStat.TabIndex = 0;
             dgvPlayerSeasonStat.CellClick += dgvPlayerSeasonStat_CellClick;
@@ -1080,6 +1105,7 @@
             // numPlayerSeasonStatMinutes
             // 
             numPlayerSeasonStatMinutes.Location = new Point(150, 117);
+            numPlayerSeasonStatMinutes.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numPlayerSeasonStatMinutes.Name = "numPlayerSeasonStatMinutes";
             numPlayerSeasonStatMinutes.Size = new Size(56, 26);
             numPlayerSeasonStatMinutes.TabIndex = 15;
@@ -1103,6 +1129,9 @@
             // 
             // cmbPlayerSeasonStatTeam
             // 
+            cmbPlayerSeasonStatTeam.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerSeasonStatTeam.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerSeasonStatTeam.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerSeasonStatTeam.FormattingEnabled = true;
             cmbPlayerSeasonStatTeam.Location = new Point(412, 39);
             cmbPlayerSeasonStatTeam.Name = "cmbPlayerSeasonStatTeam";
@@ -1121,6 +1150,9 @@
             // 
             // cmbPlayerSeasonStatCompSeason
             // 
+            cmbPlayerSeasonStatCompSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerSeasonStatCompSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerSeasonStatCompSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerSeasonStatCompSeason.FormattingEnabled = true;
             cmbPlayerSeasonStatCompSeason.Location = new Point(215, 39);
             cmbPlayerSeasonStatCompSeason.Name = "cmbPlayerSeasonStatCompSeason";
@@ -1139,6 +1171,9 @@
             // 
             // cmbPlayerSeasonStatPlayer
             // 
+            cmbPlayerSeasonStatPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerSeasonStatPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerSeasonStatPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerSeasonStatPlayer.FormattingEnabled = true;
             cmbPlayerSeasonStatPlayer.Location = new Point(18, 39);
             cmbPlayerSeasonStatPlayer.Name = "cmbPlayerSeasonStatPlayer";
@@ -1253,6 +1288,7 @@
             dgvPlayerAward.DefaultCellStyle = dataGridViewCellStyle12;
             dgvPlayerAward.Location = new Point(0, 0);
             dgvPlayerAward.Name = "dgvPlayerAward";
+            dgvPlayerAward.ReadOnly = true;
             dgvPlayerAward.Size = new Size(729, 247);
             dgvPlayerAward.TabIndex = 0;
             dgvPlayerAward.CellClick += dgvPlayerAward_CellClick;
@@ -1290,6 +1326,9 @@
             // 
             // cmbPlayerAwardSeason
             // 
+            cmbPlayerAwardSeason.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAwardSeason.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAwardSeason.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAwardSeason.FormattingEnabled = true;
             cmbPlayerAwardSeason.Location = new Point(401, 42);
             cmbPlayerAwardSeason.Name = "cmbPlayerAwardSeason";
@@ -1308,6 +1347,9 @@
             // 
             // cmbPlayerAwardAward
             // 
+            cmbPlayerAwardAward.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAwardAward.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAwardAward.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAwardAward.FormattingEnabled = true;
             cmbPlayerAwardAward.Location = new Point(209, 42);
             cmbPlayerAwardAward.Name = "cmbPlayerAwardAward";
@@ -1326,6 +1368,9 @@
             // 
             // cmbPlayerAwardPlayer
             // 
+            cmbPlayerAwardPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbPlayerAwardPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbPlayerAwardPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPlayerAwardPlayer.FormattingEnabled = true;
             cmbPlayerAwardPlayer.Location = new Point(15, 42);
             cmbPlayerAwardPlayer.Name = "cmbPlayerAwardPlayer";
@@ -1440,6 +1485,7 @@
             dgvScoutingReport.DefaultCellStyle = dataGridViewCellStyle13;
             dgvScoutingReport.Location = new Point(0, 0);
             dgvScoutingReport.Name = "dgvScoutingReport";
+            dgvScoutingReport.ReadOnly = true;
             dgvScoutingReport.Size = new Size(729, 247);
             dgvScoutingReport.TabIndex = 0;
             dgvScoutingReport.CellClick += dgvScoutingReport_CellClick;
@@ -1518,6 +1564,9 @@
             // 
             // cmbScoutingReportMatch
             // 
+            cmbScoutingReportMatch.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbScoutingReportMatch.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbScoutingReportMatch.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbScoutingReportMatch.FormattingEnabled = true;
             cmbScoutingReportMatch.Location = new Point(15, 116);
             cmbScoutingReportMatch.Name = "cmbScoutingReportMatch";
@@ -1553,6 +1602,9 @@
             // 
             // cmbScoutingReportPlayer
             // 
+            cmbScoutingReportPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbScoutingReportPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbScoutingReportPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbScoutingReportPlayer.FormattingEnabled = true;
             cmbScoutingReportPlayer.Location = new Point(209, 42);
             cmbScoutingReportPlayer.Name = "cmbScoutingReportPlayer";
@@ -1571,6 +1623,9 @@
             // 
             // cmbScoutingReportScout
             // 
+            cmbScoutingReportScout.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbScoutingReportScout.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbScoutingReportScout.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbScoutingReportScout.FormattingEnabled = true;
             cmbScoutingReportScout.Location = new Point(15, 42);
             cmbScoutingReportScout.Name = "cmbScoutingReportScout";
@@ -1739,12 +1794,16 @@
             // numTransferHistoryFee
             // 
             numTransferHistoryFee.Location = new Point(407, 117);
+            numTransferHistoryFee.Maximum = new decimal(new int[] { 1215752192, 23, 0, 0 });
             numTransferHistoryFee.Name = "numTransferHistoryFee";
             numTransferHistoryFee.Size = new Size(160, 26);
             numTransferHistoryFee.TabIndex = 19;
             // 
             // cmbTransferHistoryType
             // 
+            cmbTransferHistoryType.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbTransferHistoryType.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbTransferHistoryType.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbTransferHistoryType.FormattingEnabled = true;
             cmbTransferHistoryType.Location = new Point(210, 116);
             cmbTransferHistoryType.Name = "cmbTransferHistoryType";
@@ -1763,6 +1822,9 @@
             // 
             // cmbTransferHistoryToTeam
             // 
+            cmbTransferHistoryToTeam.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbTransferHistoryToTeam.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbTransferHistoryToTeam.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbTransferHistoryToTeam.FormattingEnabled = true;
             cmbTransferHistoryToTeam.Location = new Point(15, 116);
             cmbTransferHistoryToTeam.Name = "cmbTransferHistoryToTeam";
@@ -1798,6 +1860,9 @@
             // 
             // cmbTransferHistoryFromTeam
             // 
+            cmbTransferHistoryFromTeam.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbTransferHistoryFromTeam.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbTransferHistoryFromTeam.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbTransferHistoryFromTeam.FormattingEnabled = true;
             cmbTransferHistoryFromTeam.Location = new Point(398, 41);
             cmbTransferHistoryFromTeam.Name = "cmbTransferHistoryFromTeam";
@@ -1816,6 +1881,9 @@
             // 
             // cmbTransferHistoryPlayer
             // 
+            cmbTransferHistoryPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbTransferHistoryPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbTransferHistoryPlayer.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbTransferHistoryPlayer.FormattingEnabled = true;
             cmbTransferHistoryPlayer.Location = new Point(15, 42);
             cmbTransferHistoryPlayer.Name = "cmbTransferHistoryPlayer";
